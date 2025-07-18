@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Avoid The Bomb - Space Edition</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Avoid The Bomb - Minimal Version</title>
 <style>
   html, body {
     margin: 0; padding: 0; overflow: hidden; height: 100%; background: black;
@@ -22,7 +22,7 @@
     left: 50%;
     transform: translateX(-50%);
     color: #00f9ff;
-    font-family: 'Orbitron', monospace, sans-serif;
+    font-family: monospace;
     font-weight: 700;
     font-size: 24px;
     text-shadow: 0 0 8px #00f9ff;
@@ -45,15 +45,15 @@
   function resize() {
     w = canvas.width = window.innerWidth;
     h = canvas.height = window.innerHeight;
-    player.y = h - player.height - 60; // keep player 60px above bottom on resize
+    player.y = h - player.height - 60;
   }
   resize();
   window.addEventListener('resize', resize);
 
-  // Starfield background
+  // Stars background
   const starsCount = 150;
   const stars = [];
-  for(let i = 0; i < starsCount; i++) {
+  for(let i=0; i<starsCount; i++) {
     stars.push({
       x: Math.random() * w,
       y: Math.random() * h,
@@ -62,23 +62,15 @@
     });
   }
 
-  // Images
-  const playerImg = new Image();
-  playerImg.src = 'https://cdn-icons-png.flaticon.com/512/833/833314.png'; // spaceship
-
-  const bombImg = new Image();
-  bombImg.src = 'https://cdn-icons-png.flaticon.com/512/657/657257.png'; // asteroid / bomb
-
-  // Player
+  // Player (simple blue rectangle)
   const player = {
     width: 60,
     height: 60,
     x: 0,
     y: 0,
-    speed: 15,
+    speed: 15
   };
-  // Set initial position centered horizontally near bottom
-  player.x = w / 2 - player.width / 2;
+  player.x = w/2 - player.width/2;
   player.y = h - player.height - 60;
 
   let bombs = [];
@@ -95,21 +87,16 @@
   }
 
   function update() {
-    // Move stars down for background effect
     stars.forEach(s => {
       s.y += s.speed;
       if(s.y > h) s.y = 0;
     });
 
-    // Move bombs
     bombs.forEach(bomb => bomb.y += bomb.speed);
-
-    // Remove bombs that left screen
     bombs = bombs.filter(b => b.y < h + b.size);
 
-    // Collision detection
     bombs.forEach(bomb => {
-      if(
+      if (
         bomb.x < player.x + player.width &&
         bomb.x + bomb.size > player.x &&
         bomb.y < player.y + player.height &&
@@ -123,53 +110,41 @@
   }
 
   function draw() {
-    ctx.clearRect(0, 0, w, h);
+    ctx.clearRect(0,0,w,h);
 
-    // Draw stars background
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, w, h);
+    // Draw stars
     ctx.fillStyle = 'white';
     stars.forEach(s => {
       ctx.beginPath();
-      ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+      ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
       ctx.fill();
     });
 
-    // Draw player spaceship
-    if(playerImg.complete) {
-      ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
-    } else {
-      ctx.fillStyle = '#00f9ff';
-      ctx.fillRect(player.x, player.y, player.width, player.height);
-    }
+    // Draw player as blue square
+    ctx.fillStyle = '#00f9ff';
+    ctx.fillRect(player.x, player.y, player.width, player.height);
 
-    // Draw bombs
+    // Draw bombs as red circles
     bombs.forEach(bomb => {
-      if(bombImg.complete) {
-        ctx.drawImage(bombImg, bomb.x, bomb.y, bomb.size, bomb.size);
-      } else {
-        ctx.fillStyle = 'red';
-        ctx.beginPath();
-        ctx.arc(bomb.x + bomb.size / 2, bomb.y + bomb.size / 2, bomb.size / 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      ctx.fillStyle = 'red';
+      ctx.beginPath();
+      ctx.arc(bomb.x + bomb.size/2, bomb.y + bomb.size/2, bomb.size/2, 0, Math.PI*2);
+      ctx.fill();
     });
 
-    // Score UI
+    // Update score text
     document.getElementById('score').textContent = 'Score: ' + score;
 
-    // Game over text
     if(gameOver) {
       ctx.fillStyle = '#00f9ff';
-      ctx.font = 'bold 60px Orbitron, monospace';
+      ctx.font = 'bold 60px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('GAME OVER', w / 2, h / 2 - 20);
-      ctx.font = '30px Orbitron, monospace';
-      ctx.fillText('Final Score: ' + score, w / 2, h / 2 + 40);
+      ctx.fillText('GAME OVER', w/2, h/2 - 20);
+      ctx.font = '30px monospace';
+      ctx.fillText('Final Score: ' + score, w/2, h/2 + 40);
     }
   }
 
-  // Game loop
   function gameLoop() {
     if(!gameOver) update();
     draw();
@@ -177,53 +152,33 @@
   }
 
   // Controls
-
-  // Touch drag control (smooth slide left/right)
+  // Touch drag to slide left/right
   let touchX = null;
-
   canvas.addEventListener('touchstart', e => {
     if(e.touches.length === 1) {
       touchX = e.touches[0].clientX;
     }
-  }, {passive: true});
+  }, {passive:true});
 
   canvas.addEventListener('touchmove', e => {
     e.preventDefault();
     if(e.touches.length === 1) {
-      const newX = e.touches[0].clientX;
-      const delta = newX - touchX;
+      let newX = e.touches[0].clientX;
+      let delta = newX - touchX;
       player.x += delta;
       player.x = Math.min(Math.max(player.x, 0), w - player.width);
       touchX = newX;
     }
-  }, {passive: false});
+  }, {passive:false});
 
   canvas.addEventListener('touchend', e => {
     touchX = null;
   });
 
-  // Tap left/right to move by speed step
-  canvas.addEventListener('touchcancel', e => {
-    touchX = null;
-  });
-
-  canvas.addEventListener('touchstart', e => {
-    // Also support tap to move quickly left or right
-    const tapX = e.touches[0].clientX;
-    if(tapX < w/2) {
-      player.x = Math.max(player.x - player.speed, 0);
-    } else {
-      player.x = Math.min(player.x + player.speed, w - player.width);
-    }
-  }, {passive: true});
-
-  // Keyboard controls
+  // Keyboard arrows
   document.addEventListener('keydown', e => {
-    if(e.key === 'ArrowLeft') {
-      player.x = Math.max(player.x - player.speed, 0);
-    } else if(e.key === 'ArrowRight') {
-      player.x = Math.min(player.x + player.speed, w - player.width);
-    }
+    if(e.key === 'ArrowLeft') player.x = Math.max(player.x - player.speed, 0);
+    else if(e.key === 'ArrowRight') player.x = Math.min(player.x + player.speed, w - player.width);
   });
 
   // Spawn bombs every 800ms
