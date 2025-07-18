@@ -1,128 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avoid The Bomb - Fullscreen</title>
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background: black;
-            overflow: hidden;
-        }
-        canvas {
-            display: block;
-            width: 100vw;
-            height: 100vh;
-            background: url('https://images.unsplash.com/photo-1527443154391-507e9dc6c5cc?fit=crop&w=1280&q=80') no-repeat center center/cover;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Avoid The Bomb - Space Edition</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; overflow: hidden; height: 100%; background: black;
+    touch-action: none;
+    user-select: none;
+  }
+  canvas {
+    display: block;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: radial-gradient(ellipse at center, #000000 0%, #0a0a1a 80%);
+  }
+  #score {
+    position: fixed;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #00f9ff;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    text-shadow: 0 0 8px #00f9ff;
+    pointer-events: none;
+    user-select: none;
+  }
+</style>
 </head>
 <body>
-<canvas id="gameCanvas"></canvas>
+<canvas id="game"></canvas>
+<div id="score">Score: 0</div>
 
 <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+// Starfield background
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+let w = canvas.width = window.innerWidth;
+let h = canvas.height = window.innerHeight;
 
-    const playerImg = new Image();
-    playerImg.src = 'https://cdn-icons-png.flaticon.com/512/194/194938.png';
+// Stars for background
+const starsCount = 150;
+const stars = [];
+for(let i=0; i<starsCount; i++) {
+  stars.push({
+    x: Math.random()*w,
+    y: Math.random()*h,
+    size: Math.random()*1.5,
+    speed: 0.5 + Math.random()*1.5
+  });
+}
 
-    const bombImg = new Image();
-    bombImg.src = 'https://cdn-icons-png.flaticon.com/512/616/616408.png';
+// Player spaceship
+const playerImg = new Image();
+playerImg.src = 'https://cdn-icons-png.flaticon.com/512/833/833314.png'; // sleek spaceship icon
 
-    const player = {
-        x: canvas.width / 2 - 20,
-        y: canvas.height - 80,
-        width: 50,
-        height: 50,
-        speed: 40
-    };
+const asteroidImg = new Image();
+asteroidImg.src = 'https://cdn-icons-png.flaticon.com/512/657/657257.png'; // asteroid icon
 
-    let bombs = [], score = 0, gameOver = false;
+const player = {
+  width: 50,
+  height: 50,
+  x: w/2 - 25,
+  y: h - 100,
+  speed: 25
+};
 
-    function spawnBomb() {
-        bombs.push({
-            x: Math.random() * (canvas.width - 40),
-            y: -40,
-            size: 40,
-            speed: 3 + Math.random() * 3
-        });
+let bombs = [];
+let score = 0;
+let gameOver = false;
+
+function spawnBomb() {
+  bombs.push({
+    x: Math.random()*(w-40),
+    y: -50,
+    size: 40,
+    speed: 2 + Math.random()*3
+  });
+}
+
+function update() {
+  // Move stars downward for starfield effect
+  stars.forEach(s => {
+    s.y += s.speed;
+    if(s.y > h) s.y = 0;
+  });
+  
+  // Move bombs down
+  bombs.forEach(bomb => bomb.y += bomb.speed);
+
+  // Remove bombs off screen
+  bombs = bombs.filter(b => b.y < h + b.size);
+
+  // Collision detection
+  bombs.forEach(bomb => {
+    if(
+      bomb.x < player.x + player.width &&
+      bomb.x + bomb.size > player.x &&
+      bomb.y < player.y + player.height &&
+      bomb.y + bomb.size > player.y
+    ) {
+      gameOver = true;
     }
+  });
 
-    function update() {
-        bombs.forEach(bomb => {
-            bomb.y += bomb.speed;
-            if (
-                bomb.x < player.x + player.width &&
-                bomb.x + bomb.size > player.x &&
-                bomb.y < player.y + player.height &&
-                bomb.y + bomb.size > player.y
-            ) {
-                gameOver = true;
-            }
-        });
-        bombs = bombs.filter(b => b.y < canvas.height);
-        if (!gameOver) score++;
-    }
+  if(!gameOver) score++;
+}
 
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+function draw() {
+  // Draw starfield background
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, w, h);
 
-        ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+  ctx.fillStyle = 'white';
+  stars.forEach(s => {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+    ctx.fill();
+  });
 
-        bombs.forEach(bomb => {
-            ctx.drawImage(bombImg, bomb.x, bomb.y, bomb.size, bomb.size);
-        });
+  // Draw player spaceship
+  ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
 
-        ctx.fillStyle = 'white';
-        ctx.font = '20px Arial';
-        ctx.fillText('Score: ' + score, 20, 30);
+  // Draw bombs (asteroids)
+  bombs.forEach(bomb => {
+    ctx.drawImage(asteroidImg, bomb.x, bomb.y, bomb.size, bomb.size);
+  });
 
-        if (gameOver) {
-            ctx.font = '50px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2);
-            ctx.font = '30px Arial';
-            ctx.fillText('Final Score: ' + score, canvas.width/2, canvas.height/2 + 50);
-        }
-    }
+  // Draw score
+  document.getElementById('score').textContent = 'Score: ' + score;
 
-    function gameLoop() {
-        update();
-        draw();
-        if (!gameOver) requestAnimationFrame(gameLoop);
-    }
+  if(gameOver) {
+    ctx.fillStyle = '#00f9ff';
+    ctx.font = 'bold 60px Orbitron, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER', w/2, h/2 - 20);
+    ctx.font = '30px Orbitron, sans-serif';
+    ctx.fillText('Final Score: ' + score, w/2, h/2 + 30);
+  }
+}
 
-    function movePlayer(dir) {
-        if (dir === 'left' && player.x > 0) player.x -= player.speed;
-        else if (dir === 'right' && player.x + player.width < canvas.width) player.x += player.speed;
-    }
+function gameLoop() {
+  if(!gameOver) {
+    update();
+  }
+  draw();
+  if(!gameOver) requestAnimationFrame(gameLoop);
+}
 
-    canvas.addEventListener('touchstart', e => {
-        const touchX = e.touches[0].clientX;
-        if (touchX < canvas.width / 2) movePlayer('left');
-        else movePlayer('right');
-    });
+// Controls: tap or drag left/right side to move
+canvas.addEventListener('touchstart', e => {
+  const touchX = e.touches[0].clientX;
+  if(touchX < w/2) {
+    player.x = Math.max(player.x - player.speed, 0);
+  } else {
+    player.x = Math.min(player.x + player.speed, w - player.width);
+  }
+});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const touchX = e.touches[0].clientX;
+  player.x = Math.min(Math.max(touchX - player.width/2, 0), w - player.width);
+}, { passive: false });
 
-    document.addEventListener('keydown', e => {
-        if (e.key === 'ArrowLeft') movePlayer('left');
-        if (e.key === 'ArrowRight') movePlayer('right');
-    });
+// Keyboard support
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowLeft') {
+    player.x = Math.max(player.x - player.speed, 0);
+  } else if(e.key === 'ArrowRight') {
+    player.x = Math.min(player.x + player.speed, w - player.width);
+  }
+});
 
-    setInterval(spawnBomb, 800);
-    gameLoop();
+setInterval(spawnBomb, 800);
+gameLoop();
 
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    });
+window.addEventListener('resize', () => {
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+  player.y = h - 100;
+});
 </script>
 </body>
 </html>
