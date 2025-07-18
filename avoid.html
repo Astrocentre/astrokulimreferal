@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Avoid The Bomb - Minimal Version</title>
+<title>Avoid The Bomb - Fixed Version</title>
 <style>
   html, body {
     margin: 0; padding: 0; overflow: hidden; height: 100%; background: black;
@@ -42,9 +42,20 @@
   const ctx = canvas.getContext('2d');
 
   let w, h;
+
+  // Player (simple blue rectangle)
+  const player = {
+    width: 60,
+    height: 60,
+    x: 0,
+    y: 0,
+    speed: 15
+  };
+
   function resize() {
     w = canvas.width = window.innerWidth;
     h = canvas.height = window.innerHeight;
+    player.x = w/2 - player.width/2;
     player.y = h - player.height - 60;
   }
   resize();
@@ -61,17 +72,6 @@
       speed: 0.5 + Math.random() * 1.5
     });
   }
-
-  // Player (simple blue rectangle)
-  const player = {
-    width: 60,
-    height: 60,
-    x: 0,
-    y: 0,
-    speed: 15
-  };
-  player.x = w/2 - player.width/2;
-  player.y = h - player.height - 60;
 
   let bombs = [];
   let score = 0;
@@ -152,7 +152,6 @@
   }
 
   // Controls
-  // Touch drag to slide left/right
   let touchX = null;
   canvas.addEventListener('touchstart', e => {
     if(e.touches.length === 1) {
@@ -175,13 +174,11 @@
     touchX = null;
   });
 
-  // Keyboard arrows
   document.addEventListener('keydown', e => {
     if(e.key === 'ArrowLeft') player.x = Math.max(player.x - player.speed, 0);
     else if(e.key === 'ArrowRight') player.x = Math.min(player.x + player.speed, w - player.width);
   });
 
-  // Spawn bombs every 800ms
   setInterval(() => {
     if(!gameOver) spawnBomb();
   }, 800);
