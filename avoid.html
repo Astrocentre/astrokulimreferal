@@ -7,7 +7,7 @@
 <style>
   html, body {
     margin: 0; padding: 0; overflow: hidden; height: 100%; background: black;
-    touch-action: none; /* Prevent browser gestures like scroll, pinch-zoom */
+    touch-action: none;
     user-select: none;
   }
   canvas {
@@ -16,7 +16,7 @@
     top: 0; left: 0;
     width: 100vw; height: 100vh;
     background: radial-gradient(ellipse at center, #000000 0%, #0a0a1a 80%);
-    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+    -webkit-tap-highlight-color: transparent;
   }
   #score {
     position: fixed;
@@ -58,12 +58,12 @@
     });
   }
 
-  // Images
+  // Player image embedded as base64
   const playerImg = new Image();
-  playerImg.src = 'https://cdn-icons-png.flaticon.com/512/833/833314.png'; // spaceship
+  playerImg.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAB/UlEQVRoge3ZPU8CQRzH8d+zsd3YImZHB8jIfKEvZkz1Bht1rGG1omUxh5bRrTnRqaOt8HoAjXuOQHAP1Hb5Azp/N1Aw90A+wBU78G6QxkT+NHR9bF7yQkqjYlFTfqHSu7iP7Iq6TbGS3UvPZxkR5tw8jkY6TQrh8fxPAEwhhJbdEt7zVhsRBPMJyA+Zx6HjAPx0YQ+zw5gjccE0aKnOkjUb3NKuYHsUCtuKhEZ5xlNHi8jdhP5SlSn5TnpfcZqkG1guLKEDrhdyi5INWGuTjBHOlsJMdMH0znfGYFROdoa6xMA6mFG/HecRzr7HLc69pOBMTv6PoDqJ+93nxPkeYN8a6K8rPnlPpDy/67iv5iD95JYlS6qFDXmZ8GYm+3yr3q1Tmg7Knzzsnt6yvL7fMgGl3gMa1XuB83svz8nW5hADaR7mG9fZkk5BPx35DzscqIDq5z9ECevZkDWutAf7CQieEZAxjlcs6XZwl4CAAAAAElFTkSuQmCC';
 
   const asteroidImg = new Image();
-  asteroidImg.src = 'https://cdn-icons-png.flaticon.com/512/657/657257.png'; // asteroid
+  asteroidImg.src = 'https://cdn-icons-png.flaticon.com/512/657/657257.png';
 
   // Player object
   const player = {
@@ -127,16 +127,17 @@
     });
 
     // Draw player
-    if(playerImg.complete) {
+    if(playerImg.complete && playerImg.naturalWidth !== 0) {
       ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
     } else {
+      // fallback rectangle if image not loaded yet
       ctx.fillStyle = '#00f9ff';
       ctx.fillRect(player.x, player.y, player.width, player.height);
     }
 
     // Draw bombs
     bombs.forEach(bomb => {
-      if(asteroidImg.complete) {
+      if(asteroidImg.complete && asteroidImg.naturalWidth !== 0) {
         ctx.drawImage(asteroidImg, bomb.x, bomb.y, bomb.size, bomb.size);
       } else {
         ctx.fillStyle = 'red';
@@ -192,8 +193,10 @@
     player.y = h - 100;
   });
 
-  // Start the game loop
-  gameLoop();
+  // Start game loop only after player image loads
+  playerImg.onload = () => {
+    gameLoop();
+  };
 
   // Spawn bombs every 800ms
   setInterval(() => { if(!gameOver) spawnBomb(); }, 800);
