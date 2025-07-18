@@ -344,6 +344,7 @@ function createSound(freq, type = 'square', duration = 0.1) {
     restartBtn.style.display = 'none';
     message.style.display = 'none';
     scoreUI.textContent = 'Score: 0';
+    lastTime = 0;  // Reset time to avoid huge delta on first frame
     loop();
   }
 
@@ -374,7 +375,7 @@ function createSound(freq, type = 'square', duration = 0.1) {
   runner.y = h - groundHeight - runner.height;
   message.style.display = 'none';
 
-  // Draw start screen
+  // Draw start screen initially
   draw();
 
 })();
