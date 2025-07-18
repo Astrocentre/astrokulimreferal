@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avoid The Bomb - Astro Centre Kulim</title>
+    <title>Avoid The Bomb - Professional Edition</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #1f4037, #99f2c8);
+            background: #0f2027;
+            background: linear-gradient(315deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -19,54 +20,30 @@
             overflow: hidden;
         }
 
-        h1 {
-            margin-bottom: 10px;
-        }
-
-        #gameCanvas {
-            border: 4px solid #ffffff;
-            border-radius: 12px;
-            background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?fit=crop&w=800&q=80') no-repeat center center/cover;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-
-        .controls {
-            margin-top: 10px;
-        }
-
-        .controls button {
-            background: #ff416c;
-            border: none;
-            padding: 12px 25px;
-            margin: 0 10px;
-            color: white;
-            font-size: 18px;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .controls button:hover {
-            background: #ff4b2b;
-        }
-
         #scoreDisplay {
             font-size: 20px;
             margin-bottom: 10px;
             background: rgba(0,0,0,0.5);
             padding: 5px 15px;
             border-radius: 20px;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        canvas {
+            border: 3px solid #ffffff;
+            border-radius: 12px;
+            background: url('https://images.unsplash.com/photo-1549921296-3b4a22f69179?fit=crop&w=800&q=80') no-repeat center center/cover;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            touch-action: none;
         }
     </style>
 </head>
 <body>
-    <h1>Avoid The Bomb</h1>
     <div id="scoreDisplay">Score: 0</div>
     <canvas id="gameCanvas" width="400" height="600"></canvas>
-    <div class="controls">
-        <button onclick="moveLeft()">⬅️ Move Left</button>
-        <button onclick="moveRight()">➡️ Move Right</button>
-    </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -146,21 +123,26 @@
             }
         }
 
-        function moveLeft() {
-            if (player.x > 0) {
+        function movePlayer(direction) {
+            if (direction === 'left' && player.x > 0) {
                 player.x -= player.speed;
-            }
-        }
-
-        function moveRight() {
-            if (player.x + player.width < canvas.width) {
+            } else if (direction === 'right' && player.x + player.width < canvas.width) {
                 player.x += player.speed;
             }
         }
 
+        canvas.addEventListener('touchstart', (e) => {
+            const touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+            if (touchX < canvas.width / 2) {
+                movePlayer('left');
+            } else {
+                movePlayer('right');
+            }
+        });
+
         document.addEventListener('keydown', e => {
-            if (e.key === 'ArrowLeft') moveLeft();
-            else if (e.key === 'ArrowRight') moveRight();
+            if (e.key === 'ArrowLeft') movePlayer('left');
+            else if (e.key === 'ArrowRight') movePlayer('right');
         });
 
         setInterval(spawnBomb, 800);
