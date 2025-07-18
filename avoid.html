@@ -7,8 +7,7 @@
 <style>
   html, body {
     margin: 0; padding: 0; overflow: hidden; height: 100%; background: black;
-    touch-action: none;
-    user-select: none;
+    touch-action: none; user-select: none;
   }
   canvas {
     display: block;
@@ -23,12 +22,13 @@
     left: 50%;
     transform: translateX(-50%);
     color: #00f9ff;
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Orbitron', sans-serif, monospace;
     font-weight: 700;
     font-size: 24px;
     text-shadow: 0 0 8px #00f9ff;
     pointer-events: none;
     user-select: none;
+    z-index: 10;
   }
 </style>
 </head>
@@ -37,36 +37,36 @@
 <div id="score">Score: 0</div>
 
 <script>
-// Starfield background
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
 let w = canvas.width = window.innerWidth;
 let h = canvas.height = window.innerHeight;
 
-// Stars for background
+// Stars background
 const starsCount = 150;
 const stars = [];
-for(let i=0; i<starsCount; i++) {
+for(let i = 0; i < starsCount; i++) {
   stars.push({
-    x: Math.random()*w,
-    y: Math.random()*h,
-    size: Math.random()*1.5,
-    speed: 0.5 + Math.random()*1.5
+    x: Math.random() * w,
+    y: Math.random() * h,
+    size: Math.random() * 1.5,
+    speed: 0.5 + Math.random() * 1.5
   });
 }
 
-// Player spaceship
+// Images
 const playerImg = new Image();
-playerImg.src = 'https://cdn-icons-png.flaticon.com/512/833/833314.png'; // sleek spaceship icon
+playerImg.src = 'https://cdn-icons-png.flaticon.com/512/833/833314.png'; // spaceship
 
 const asteroidImg = new Image();
-asteroidImg.src = 'https://cdn-icons-png.flaticon.com/512/657/657257.png'; // asteroid icon
+asteroidImg.src = 'https://cdn-icons-png.flaticon.com/512/657/657257.png'; // asteroid
 
+// Player object
 const player = {
   width: 50,
   height: 50,
-  x: w/2 - 25,
+  x: w / 2 - 25,
   y: h - 100,
   speed: 25
 };
@@ -77,27 +77,27 @@ let gameOver = false;
 
 function spawnBomb() {
   bombs.push({
-    x: Math.random()*(w-40),
+    x: Math.random() * (w - 40),
     y: -50,
     size: 40,
-    speed: 2 + Math.random()*3
+    speed: 2 + Math.random() * 3
   });
 }
 
 function update() {
-  // Move stars downward for starfield effect
+  // Move stars down
   stars.forEach(s => {
     s.y += s.speed;
     if(s.y > h) s.y = 0;
   });
-  
-  // Move bombs down
+
+  // Move bombs
   bombs.forEach(bomb => bomb.y += bomb.speed);
 
-  // Remove bombs off screen
+  // Remove bombs out of screen
   bombs = bombs.filter(b => b.y < h + b.size);
 
-  // Collision detection
+  // Check collision
   bombs.forEach(bomb => {
     if(
       bomb.x < player.x + player.width &&
@@ -113,35 +113,47 @@ function update() {
 }
 
 function draw() {
-  // Draw starfield background
+  // Clear & draw starfield
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, w, h);
-
   ctx.fillStyle = 'white';
   stars.forEach(s => {
     ctx.beginPath();
-    ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
     ctx.fill();
   });
 
-  // Draw player spaceship
-  ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+  // Draw player
+  if(playerImg.complete) {
+    ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+  } else {
+    // fallback rectangle
+    ctx.fillStyle = '#00f9ff';
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+  }
 
-  // Draw bombs (asteroids)
+  // Draw bombs
   bombs.forEach(bomb => {
-    ctx.drawImage(asteroidImg, bomb.x, bomb.y, bomb.size, bomb.size);
+    if(asteroidImg.complete) {
+      ctx.drawImage(asteroidImg, bomb.x, bomb.y, bomb.size, bomb.size);
+    } else {
+      ctx.fillStyle = 'red';
+      ctx.beginPath();
+      ctx.arc(bomb.x + bomb.size/2, bomb.y + bomb.size/2, bomb.size/2, 0, Math.PI * 2);
+      ctx.fill();
+    }
   });
 
-  // Draw score
+  // Score text (also in the #score div)
   document.getElementById('score').textContent = 'Score: ' + score;
 
   if(gameOver) {
     ctx.fillStyle = '#00f9ff';
-    ctx.font = 'bold 60px Orbitron, sans-serif';
+    ctx.font = 'bold 60px Orbitron, monospace';
     ctx.textAlign = 'center';
     ctx.fillText('GAME OVER', w/2, h/2 - 20);
-    ctx.font = '30px Orbitron, sans-serif';
-    ctx.fillText('Final Score: ' + score, w/2, h/2 + 30);
+    ctx.font = '30px Orbitron, monospace';
+    ctx.fillText('Final Score: ' + score, w/2, h/2 + 40);
   }
 }
 
@@ -153,31 +165,31 @@ function gameLoop() {
   if(!gameOver) requestAnimationFrame(gameLoop);
 }
 
-// Controls: tap or drag left/right side to move
+// Controls: tap left/right or drag finger on mobile
 canvas.addEventListener('touchstart', e => {
   const touchX = e.touches[0].clientX;
-  if(touchX < w/2) {
+  if(touchX < w / 2) {
     player.x = Math.max(player.x - player.speed, 0);
   } else {
     player.x = Math.min(player.x + player.speed, w - player.width);
   }
 });
+
 canvas.addEventListener('touchmove', e => {
   e.preventDefault();
   const touchX = e.touches[0].clientX;
-  player.x = Math.min(Math.max(touchX - player.width/2, 0), w - player.width);
+  player.x = Math.min(Math.max(touchX - player.width / 2, 0), w - player.width);
 }, { passive: false });
 
 // Keyboard support
 document.addEventListener('keydown', e => {
-  if(e.key === 'ArrowLeft') {
-    player.x = Math.max(player.x - player.speed, 0);
-  } else if(e.key === 'ArrowRight') {
-    player.x = Math.min(player.x + player.speed, w - player.width);
-  }
+  if(e.key === 'ArrowLeft') player.x = Math.max(player.x - player.speed, 0);
+  else if(e.key === 'ArrowRight') player.x = Math.min(player.x + player.speed, w - player.width);
 });
 
-setInterval(spawnBomb, 800);
+// Spawn bombs interval
+setInterval(() => { if(!gameOver) spawnBomb(); }, 800);
+
 gameLoop();
 
 window.addEventListener('resize', () => {
