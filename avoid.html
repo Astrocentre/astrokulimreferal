@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Avoid The Bomb - Space Edition</title>
+<title>Avoid The Bomb - Mobile Friendly</title>
 <style>
   html, body {
     margin: 0; padding: 0; overflow: hidden; height: 100%; background: black;
-    touch-action: none; user-select: none;
+    touch-action: none; /* Prevent browser gestures like scroll, pinch-zoom */
+    user-select: none;
   }
   canvas {
     display: block;
@@ -15,7 +16,7 @@
     top: 0; left: 0;
     width: 100vw; height: 100vh;
     background: radial-gradient(ellipse at center, #000000 0%, #0a0a1a 80%);
-    cursor: none;
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
   }
   #score {
     position: fixed;
@@ -30,9 +31,6 @@
     pointer-events: none;
     user-select: none;
     z-index: 10;
-  }
-  :focus {
-    outline: none;
   }
 </style>
 </head>
@@ -73,7 +71,7 @@
     height: 50,
     x: w / 2 - 25,
     y: h - 100,
-    speed: 25
+    speed: 30
   };
 
   let bombs = [];
@@ -118,7 +116,6 @@
   }
 
   function draw() {
-    // Clear & draw starfield
     ctx.clearRect(0, 0, w, h);
 
     // Draw stars
@@ -163,15 +160,14 @@
   }
 
   function gameLoop() {
-    if(!gameOver) {
-      update();
-    }
+    if(!gameOver) update();
     draw();
     if(!gameOver) requestAnimationFrame(gameLoop);
   }
 
-  // Controls: touch & keyboard
-  // Touch controls for mobile (touch left/right half screen to move)
+  // MOBILE TOUCH CONTROLS:
+
+  // Tap left/right half screen to move player by fixed amount
   canvas.addEventListener('touchstart', e => {
     e.preventDefault();
     const touchX = e.touches[0].clientX;
@@ -182,34 +178,26 @@
     }
   }, { passive: false });
 
-  // Touch drag moves player
+  // Drag finger horizontally to move player exactly under finger
   canvas.addEventListener('touchmove', e => {
     e.preventDefault();
     const touchX = e.touches[0].clientX;
     player.x = Math.min(Math.max(touchX - player.width / 2, 0), w - player.width);
   }, { passive: false });
 
-  // Keyboard controls
-  document.addEventListener('keydown', e => {
-    if(gameOver) return; // no control after game over
-    if(e.key === 'ArrowLeft' || e.key === 'a') {
-      player.x = Math.max(player.x - player.speed, 0);
-    } else if(e.key === 'ArrowRight' || e.key === 'd') {
-      player.x = Math.min(player.x + player.speed, w - player.width);
-    }
-  });
-
-  // Spawn bombs interval
-  setInterval(() => { if(!gameOver) spawnBomb(); }, 800);
-
-  // Resize handler
+  // Responsive resize
   window.addEventListener('resize', () => {
     w = canvas.width = window.innerWidth;
     h = canvas.height = window.innerHeight;
     player.y = h - 100;
   });
 
+  // Start the game loop
   gameLoop();
+
+  // Spawn bombs every 800ms
+  setInterval(() => { if(!gameOver) spawnBomb(); }, 800);
+
 })();
 </script>
 </body>
