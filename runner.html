@@ -7,7 +7,7 @@
 <style>
   html, body {
     margin: 0; padding: 0; overflow: hidden; height: 100%;
-    background: #87ceeb;
+    background: linear-gradient(to top, #87ceeb, #ffffff);
     font-family: 'Arial', sans-serif;
   }
   canvas {
@@ -17,7 +17,7 @@
     position: absolute;
     top: 10px; left: 50%;
     transform: translateX(-50%);
-    color: white;
+    color: #fff;
     font-size: 24px;
     font-weight: bold;
     text-shadow: 0 0 5px #000;
@@ -46,25 +46,25 @@ let score = 0;
 
 const player = {
   x: 100,
-  y: h - groundHeight - 50,
-  width: 50,
-  height: 50,
+  y: h - groundHeight - 60,
+  width: 60,
+  height: 60,
   dy: 0,
   jumpForce: 15,
   grounded: true,
-  color: 'yellow'
+  color: '#FFD700'
 };
 
 const obstacles = [];
 
 function spawnObstacle() {
-  const size = 20 + Math.random() * 30;
+  const size = 30 + Math.random() * 40;
   obstacles.push({
     x: w,
     y: h - groundHeight - size,
     width: size,
     height: size,
-    color: 'red'
+    color: '#FF4500'
   });
 }
 
@@ -79,11 +79,18 @@ function update() {
   }
 
   obstacles.forEach(ob => ob.x -= gameSpeed);
-  
-  obstacles.filter(ob => ob.x + ob.width > 0);
+  obstacles = obstacles.filter(ob => ob.x + ob.width > 0);
 
   score++;
   document.getElementById('score').textContent = `Score: ${Math.floor(score/10)}`;
+}
+
+function drawBackground() {
+  const gradient = ctx.createLinearGradient(0, 0, 0, h);
+  gradient.addColorStop(0, '#87ceeb');
+  gradient.addColorStop(1, '#ffffff');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, w, h);
 }
 
 function drawGround() {
@@ -94,18 +101,29 @@ function drawGround() {
 function drawPlayer() {
   ctx.fillStyle = player.color;
   ctx.fillRect(player.x, player.y, player.width, player.height);
+  
+  // Eye detail
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(player.x + player.width - 20, player.y + 15, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'black';
+  ctx.beginPath();
+  ctx.arc(player.x + player.width - 22, player.y + 15, 4, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function drawObstacles() {
   obstacles.forEach(ob => {
     ctx.fillStyle = ob.color;
     ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fillRect(ob.x + 5, ob.y + ob.height, ob.width - 10, 8);
   });
 }
 
 function gameLoop() {
-  ctx.clearRect(0, 0, w, h);
-
+  drawBackground();
   drawGround();
   drawPlayer();
   drawObstacles();
@@ -122,7 +140,14 @@ document.addEventListener('keydown', e => {
   }
 });
 
-setInterval(spawnObstacle, 2000);
+document.addEventListener('touchstart', () => {
+  if (player.grounded) {
+    player.dy = -player.jumpForce;
+    player.grounded = false;
+  }
+}, { passive: true });
+
+setInterval(spawnObstacle, 1500);
 
 gameLoop();
 </script>
