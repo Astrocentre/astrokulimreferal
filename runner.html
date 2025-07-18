@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Professional Endless Runner</title>
+<title>Endless Runner - Pro</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
   html, body {
-    margin: 0; padding: 0; overflow: hidden; height: 100%; background: linear-gradient(to top, #70c5ce, #ffffff);
+    margin: 0; padding: 0; overflow: hidden; height: 100%;
+    background: linear-gradient(to top, #70c5ce, #ffffff);
     font-family: 'Orbitron', monospace, sans-serif;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
-    touch-action: none;
   }
   canvas {
     display: block;
@@ -45,6 +45,7 @@
     cursor: pointer;
     box-shadow: 0 5px 15px rgba(0,122,204,0.6);
     user-select: none;
+    z-index: 20;
   }
   #startBtn {
     top: 45%;
@@ -64,7 +65,7 @@
     text-shadow: 0 0 12px #00aaff;
     user-select: none;
     display: none;
-    z-index: 10;
+    z-index: 20;
   }
 </style>
 </head>
@@ -77,25 +78,6 @@
 <button id="restartBtn">Restart</button>
 
 <script>
-// Sound utilities
-function createSound(freq, type = 'square', duration = 0.1) {
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return null;
-  const ctx = new AudioContext();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = type;
-  osc.frequency.value = freq;
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start();
-  gain.gain.setValueAtTime(0.1, ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-  osc.stop(ctx.currentTime + duration);
-  osc.onended = () => ctx.close();
-  return ctx;
-}
-
 (() => {
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
@@ -136,17 +118,18 @@ function createSound(freq, type = 'square', duration = 0.1) {
     isOnGround: false,
     frame: 0,
     frameTick: 0,
-    frames: 6,
+    frames: 12,
     color: '#007acc',
     jumpPower: 20
   };
 
   // Background layers for parallax
   const bgLayers = [
-    { speed: 1, color: '#a2d4f4', y: h - groundHeight - 60, height: 60 },
-    { speed: 3, color: '#6bb5e9', y: h - groundHeight - 30, height: 30 },
-    { speed: 5, color: '#3e8ce9', y: h - groundHeight - 10, height: 10 }
+    { speed: 1, color: '#a2d4f4', yOffset: 60, height: 60 },
+    { speed: 3, color: '#6bb5e9', yOffset: 30, height: 30 },
+    { speed: 5, color: '#3e8ce9', yOffset: 10, height: 10 }
   ];
+  const bgPositions = bgLayers.map(() => 0);
 
   // Obstacle class
   class Obstacle {
@@ -164,24 +147,21 @@ function createSound(freq, type = 'square', duration = 0.1) {
     draw() {
       ctx.fillStyle = this.color;
       ctx.fillRect(this.x, this.y, this.width, this.height);
-      // Draw a little shadow
       ctx.fillStyle = 'rgba(0,0,0,0.15)';
       ctx.fillRect(this.x + 5, this.y + this.height, this.width - 10, 8);
     }
   }
 
-  // Runner draw with simple running animation (color blocks)
   function drawRunner() {
-    const frameWidth = runner.width / 3;
     ctx.fillStyle = runner.color;
-    // Body
     ctx.fillRect(runner.x, runner.y, runner.width, runner.height);
-    // Legs animation (simulate running)
+
+    // Simple legs animation
     ctx.fillStyle = '#005a9c';
     let legHeight = 20;
     let legWidth = 15;
     let legYOffset = runner.height - legHeight;
-    // Legs alternate positions every 6 frames
+
     if ((runner.frame % 12) < 6) {
       ctx.fillRect(runner.x + 10, runner.y + legYOffset, legWidth, legHeight);
       ctx.fillRect(runner.x + runner.width - 25, runner.y + legYOffset - 5, legWidth, legHeight);
@@ -189,6 +169,7 @@ function createSound(freq, type = 'square', duration = 0.1) {
       ctx.fillRect(runner.x + 10, runner.y + legYOffset - 5, legWidth, legHeight);
       ctx.fillRect(runner.x + runner.width - 25, runner.y + legYOffset, legWidth, legHeight);
     }
+
     // Eye
     ctx.fillStyle = 'white';
     ctx.beginPath();
@@ -200,29 +181,23 @@ function createSound(freq, type = 'square', duration = 0.1) {
     ctx.fill();
   }
 
-  // Draw ground
   function drawGround() {
     ctx.fillStyle = '#654321';
     ctx.fillRect(0, h - groundHeight, w, groundHeight);
   }
 
-  // Draw background layers
-  const bgPositions = bgLayers.map(() => 0);
   function drawBackground() {
     bgLayers.forEach((layer, i) => {
       let x1 = bgPositions[i];
       let x2 = x1 + w;
       ctx.fillStyle = layer.color;
-      ctx.fillRect(x1, layer.y, w, layer.height);
-      ctx.fillRect(x2, layer.y, w, layer.height);
-
-      // Move
+      ctx.fillRect(x1, h - groundHeight - layer.yOffset, w, layer.height);
+      ctx.fillRect(x2, h - groundHeight - layer.yOffset, w, layer.height);
       bgPositions[i] -= layer.speed;
       if(bgPositions[i] <= -w) bgPositions[i] = 0;
     });
   }
 
-  // Collision check
   function isColliding(rect1, rect2) {
     return !(rect1.x > rect2.x + rect2.width ||
              rect1.x + rect1.width < rect2.x ||
@@ -230,7 +205,6 @@ function createSound(freq, type = 'square', duration = 0.1) {
              rect1.y + rect1.height < rect2.y);
   }
 
-  // Update game state
   function update(deltaTime) {
     if(gameState !== 'playing') return;
 
@@ -261,6 +235,7 @@ function createSound(freq, type = 'square', duration = 0.1) {
     if(Date.now() - lastObstacleTime > obstacleSpawnInterval) {
       obstacles.push(new Obstacle());
       lastObstacleTime = Date.now();
+
       // Increase difficulty gradually
       if(obstacleSpawnInterval > 700) obstacleSpawnInterval -= 20;
       if(speed < 18) speed += 0.1;
@@ -283,10 +258,8 @@ function createSound(freq, type = 'square', duration = 0.1) {
     scoreUI.textContent = 'Score: ' + Math.floor(score);
   }
 
-  // Draw all game elements
   function draw() {
     ctx.clearRect(0, 0, w, h);
-
     drawBackground();
     drawGround();
     drawRunner();
@@ -304,7 +277,6 @@ function createSound(freq, type = 'square', duration = 0.1) {
     }
   }
 
-  // Game loop with delta time
   let lastTime = 0;
   function loop(timestamp = 0) {
     const deltaTime = timestamp - lastTime;
@@ -318,7 +290,6 @@ function createSound(freq, type = 'square', duration = 0.1) {
     }
   }
 
-  // Controls - jump function
   function jump() {
     if(gameState === 'start') {
       startGame();
@@ -331,7 +302,6 @@ function createSound(freq, type = 'square', duration = 0.1) {
     }
   }
 
-  // Start game
   function startGame() {
     gameState = 'playing';
     score = 0;
@@ -344,39 +314,50 @@ function createSound(freq, type = 'square', duration = 0.1) {
     restartBtn.style.display = 'none';
     message.style.display = 'none';
     scoreUI.textContent = 'Score: 0';
-    lastTime = 0;  // Reset time to avoid huge delta on first frame
+    lastTime = 0;
     loop();
   }
 
-  // Restart game
-  restartBtn.onclick = () => {
-    startGame();
+  restartBtn.onclick = () => startGame();
+  startBtn.onclick = () => {
+    startBtn.style.display = 'none';
+    jump();
   };
 
-  // Input listeners
   canvas.addEventListener('touchstart', e => {
     e.preventDefault();
     jump();
-  }, { passive: false });
+  }, {passive: false});
   canvas.addEventListener('mousedown', e => {
     e.preventDefault();
     jump();
   });
 
-  // Sound effects (basic beep tones)
-  function playJumpSound() {
-    createSound(600, 'square', 0.1);
+  // Sound effects
+  function createSound(freq, type = 'square', duration = 0.1) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.stop(ctx.currentTime + duration);
+    osc.onended = () => ctx.close();
   }
-  function playHitSound() {
-    createSound(200, 'sawtooth', 0.3);
-  }
+  function playJumpSound() { createSound(600, 'square', 0.1); }
+  function playHitSound() { createSound(200, 'sawtooth', 0.3); }
 
-  // Initial setup
+  // Initial runner position
   runner.y = h - groundHeight - runner.height;
   message.style.display = 'none';
 
-  // Draw start screen initially
-  draw();
+  draw();  // Draw initial start screen
 
 })();
 </script>
