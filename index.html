@@ -3,85 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astro Centre Kulim - Referral Program</title>
+    <title>Astro Centre Kulim - Exclusive Games Hub</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-image: url('https://scontent.fpen1-1.fna.fbcdn.net/v/t39.30808-6/469744851_533522992997228_8184253703632146470_n.jpg?stp=dst-jpg_s960x960_tt6&_nc_cat=109&ccb=1-7&_nc_sid=833d8c&_nc_ohc=Oc6xuZNGRIUQ7kNvwGaljxH&_nc_oc=Adm6jNThOBIhurtlokYC2QbKIqLwvguPaM5m3i5HfSi1M-rkMeJpDJ5oNcYyEyoilBQ&_nc_zt=23&_nc_ht=scontent.fpen1-1.fna&_nc_gid=Roo2Ne82ZLy6um-dyG030A&oh=00_AfSRVaK-gxy4zP7cKnhblqEfEWrwYVA9SSI7a3q9n219qA&oe=687E7582');
-            background-repeat: no-repeat;
-            background-size: cover; 
-            background-position: center center;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
             margin: 0;
             padding: 0;
-            color: white;
+            color: #fff;
+            text-align: center;
         }
         header {
-            background-color: rgba(255,0,0,0.8);
-            color: white;
-            text-align: center;
-            padding: 1rem;
-            border-radius: 0 0 10px 10px;
+            padding: 20px;
+            background: rgba(0,0,0,0.5);
         }
-        .container {
-            max-width: 800px;
-            margin: 2rem auto;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        .games-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px;
         }
-        h2 {
-            color: #FFD700;
+        .game-card {
+            background: rgba(0,0,0,0.6);
+            margin: 10px;
+            padding: 20px;
+            border-radius: 10px;
+            width: 250px;
+            cursor: pointer;
+            transition: background 0.3s;
         }
-        .button {
-            background-color: rgba(255,0,0,0.8);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            text-decoration: none;
-            border-radius: 4px;
-            display: inline-block;
-            margin: 1rem 0;
+        .game-card:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        iframe {
+            border: none;
+            width: 100%;
+            height: 500px;
+        }
+        .hidden {
+            display: none;
         }
         footer {
-            text-align: center;
-            margin: 2rem 0;
-            color: white;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #ddd;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Astro Centre Kulim</h1>
-        <p>Referral Program - Refer & Earn!</p>
+        <h1>Astro Centre Kulim - Fun Games Hub</h1>
+        <p>Play to Win Exclusive Rewards!</p>
     </header>
 
-    <div class="container">
-        <h2>How It Works:</h2>
-        <ul>
-            <li>Refer your friends & family to sign up Astro with us.</li>
-            <li>Fill up the referral form below with your details and your friend's details.</li>
-            <li>If they sign up, you’ll earn <strong>Mystery reward per successful referral</strong>.</li>
-            <li>No limit — refer as many as you can!</li>
-        </ul>
+    <div class="games-container">
+        <div class="game-card" onclick="loadGame('avoid')">💣 Avoid The Bomb</div>
+        <div class="game-card" onclick="loadGame('space')">🚀 Space Shooter</div>
+        <div class="game-card" onclick="loadGame('runner')">🏃‍♂️ Endless Runner</div>
+    </div>
 
-        <h2>Submit Your Referral</h2>
-        <iframe src="https://forms.gle/iL9WZqsyLi7u2e1Y8" width="100%" height="600" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
-
-        <h2>Terms & Conditions:</h2>
-        <ul>
-            <li>Reward is given after the referred customer completes installation.</li>
-            <li>Referrals must be new customers only.</li>
-            <li>Referrer details must be submitted before the customer signs up.</li>
-            <li>Rewards processed within 14 working days post-installation.</li>
-        </ul>
-
-        <h2>Contact Us</h2>
-        <p>Have questions? Chat with us on WhatsApp:</p>
-        <a class="button" href="https://wa.me/60199371793" target="_blank">Chat via WhatsApp</a>
+    <div id="gameArea" class="hidden">
+        <button onclick="backToMenu()">⬅️ Back to Menu</button>
+        <div id="gameFrame"></div>
     </div>
 
     <footer>
         &copy; 2025 Astro Centre Kulim. All rights reserved.
     </footer>
+
+    <script>
+        function loadGame(game) {
+            document.querySelector('.games-container').classList.add('hidden');
+            document.getElementById('gameArea').classList.remove('hidden');
+            let gameHTML = '';
+
+            if(game === 'avoid') {
+                gameHTML = '<iframe src="avoid.html"></iframe>';
+            } else if(game === 'space') {
+                gameHTML = '<iframe src="space.html"></iframe>';
+            } else if(game === 'runner') {
+                gameHTML = '<iframe src="runner.html"></iframe>';
+            }
+
+            document.getElementById('gameFrame').innerHTML = gameHTML;
+        }
+
+        function backToMenu() {
+            document.querySelector('.games-container').classList.remove('hidden');
+            document.getElementById('gameArea').classList.add('hidden');
+            document.getElementById('gameFrame').innerHTML = '';
+        }
+    </script>
 </body>
 </html>
