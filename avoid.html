@@ -3,12 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Avoid The Bomb - Mobile Friendly</title>
+<title>Avoid The Bomb - Space Edition</title>
 <style>
   html, body {
     margin: 0; padding: 0; overflow: hidden; height: 100%; background: black;
-    touch-action: none;
-    user-select: none;
+    touch-action: none; user-select: none;
   }
   canvas {
     display: block;
@@ -16,7 +15,6 @@
     top: 0; left: 0;
     width: 100vw; height: 100vh;
     background: radial-gradient(ellipse at center, #000000 0%, #0a0a1a 80%);
-    -webkit-tap-highlight-color: transparent;
   }
   #score {
     position: fixed;
@@ -43,10 +41,16 @@
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
 
-  let w = canvas.width = window.innerWidth;
-  let h = canvas.height = window.innerHeight;
+  let w, h;
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+    player.y = h - player.height - 60; // keep player 60px above bottom on resize
+  }
+  resize();
+  window.addEventListener('resize', resize);
 
-  // Stars background
+  // Starfield background
   const starsCount = 150;
   const stars = [];
   for(let i = 0; i < starsCount; i++) {
@@ -58,21 +62,24 @@
     });
   }
 
-  // Player image embedded as base64
+  // Images
   const playerImg = new Image();
-  playerImg.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAB/UlEQVRoge3ZPU8CQRzH8d+zsd3YImZHB8jIfKEvZkz1Bht1rGG1omUxh5bRrTnRqaOt8HoAjXuOQHAP1Hb5Azp/N1Aw90A+wBU78G6QxkT+NHR9bF7yQkqjYlFTfqHSu7iP7Iq6TbGS3UvPZxkR5tw8jkY6TQrh8fxPAEwhhJbdEt7zVhsRBPMJyA+Zx6HjAPx0YQ+zw5gjccE0aKnOkjUb3NKuYHsUCtuKhEZ5xlNHi8jdhP5SlSn5TnpfcZqkG1guLKEDrhdyi5INWGuTjBHOlsJMdMH0znfGYFROdoa6xMA6mFG/HecRzr7HLc69pOBMTv6PoDqJ+93nxPkeYN8a6K8rPnlPpDy/67iv5iD95JYlS6qFDXmZ8GYm+3yr3q1Tmg7Knzzsnt6yvL7fMgGl3gMa1XuB83svz8nW5hADaR7mG9fZkk5BPx35DzscqIDq5z9ECevZkDWutAf7CQieEZAxjlcs6XZwl4CAAAAAElFTkSuQmCC';
+  playerImg.src = 'https://cdn-icons-png.flaticon.com/512/833/833314.png'; // spaceship
 
-  const asteroidImg = new Image();
-  asteroidImg.src = 'https://cdn-icons-png.flaticon.com/512/657/657257.png';
+  const bombImg = new Image();
+  bombImg.src = 'https://cdn-icons-png.flaticon.com/512/657/657257.png'; // asteroid / bomb
 
-  // Player object
+  // Player
   const player = {
-    width: 50,
-    height: 50,
-    x: w / 2 - 25,
-    y: h - 100,
-    speed: 30
+    width: 60,
+    height: 60,
+    x: 0,
+    y: 0,
+    speed: 15,
   };
+  // Set initial position centered horizontally near bottom
+  player.x = w / 2 - player.width / 2;
+  player.y = h - player.height - 60;
 
   let bombs = [];
   let score = 0;
@@ -88,7 +95,7 @@
   }
 
   function update() {
-    // Move stars down
+    // Move stars down for background effect
     stars.forEach(s => {
       s.y += s.speed;
       if(s.y > h) s.y = 0;
@@ -97,10 +104,10 @@
     // Move bombs
     bombs.forEach(bomb => bomb.y += bomb.speed);
 
-    // Remove bombs out of screen
+    // Remove bombs that left screen
     bombs = bombs.filter(b => b.y < h + b.size);
 
-    // Check collision
+    // Collision detection
     bombs.forEach(bomb => {
       if(
         bomb.x < player.x + player.width &&
@@ -118,7 +125,9 @@
   function draw() {
     ctx.clearRect(0, 0, w, h);
 
-    // Draw stars
+    // Draw stars background
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = 'white';
     stars.forEach(s => {
       ctx.beginPath();
@@ -126,80 +135,103 @@
       ctx.fill();
     });
 
-    // Draw player
-    if(playerImg.complete && playerImg.naturalWidth !== 0) {
+    // Draw player spaceship
+    if(playerImg.complete) {
       ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
     } else {
-      // fallback rectangle if image not loaded yet
       ctx.fillStyle = '#00f9ff';
       ctx.fillRect(player.x, player.y, player.width, player.height);
     }
 
     // Draw bombs
     bombs.forEach(bomb => {
-      if(asteroidImg.complete && asteroidImg.naturalWidth !== 0) {
-        ctx.drawImage(asteroidImg, bomb.x, bomb.y, bomb.size, bomb.size);
+      if(bombImg.complete) {
+        ctx.drawImage(bombImg, bomb.x, bomb.y, bomb.size, bomb.size);
       } else {
         ctx.fillStyle = 'red';
         ctx.beginPath();
-        ctx.arc(bomb.x + bomb.size/2, bomb.y + bomb.size/2, bomb.size/2, 0, Math.PI * 2);
+        ctx.arc(bomb.x + bomb.size / 2, bomb.y + bomb.size / 2, bomb.size / 2, 0, Math.PI * 2);
         ctx.fill();
       }
     });
 
-    // Update score display
+    // Score UI
     document.getElementById('score').textContent = 'Score: ' + score;
 
+    // Game over text
     if(gameOver) {
       ctx.fillStyle = '#00f9ff';
       ctx.font = 'bold 60px Orbitron, monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('GAME OVER', w/2, h/2 - 20);
+      ctx.fillText('GAME OVER', w / 2, h / 2 - 20);
       ctx.font = '30px Orbitron, monospace';
-      ctx.fillText('Final Score: ' + score, w/2, h/2 + 40);
+      ctx.fillText('Final Score: ' + score, w / 2, h / 2 + 40);
     }
   }
 
+  // Game loop
   function gameLoop() {
     if(!gameOver) update();
     draw();
     if(!gameOver) requestAnimationFrame(gameLoop);
   }
 
-  // MOBILE TOUCH CONTROLS:
+  // Controls
 
-  // Tap left/right half screen to move player by fixed amount
+  // Touch drag control (smooth slide left/right)
+  let touchX = null;
+
   canvas.addEventListener('touchstart', e => {
+    if(e.touches.length === 1) {
+      touchX = e.touches[0].clientX;
+    }
+  }, {passive: true});
+
+  canvas.addEventListener('touchmove', e => {
     e.preventDefault();
-    const touchX = e.touches[0].clientX;
-    if(touchX < w / 2) {
+    if(e.touches.length === 1) {
+      const newX = e.touches[0].clientX;
+      const delta = newX - touchX;
+      player.x += delta;
+      player.x = Math.min(Math.max(player.x, 0), w - player.width);
+      touchX = newX;
+    }
+  }, {passive: false});
+
+  canvas.addEventListener('touchend', e => {
+    touchX = null;
+  });
+
+  // Tap left/right to move by speed step
+  canvas.addEventListener('touchcancel', e => {
+    touchX = null;
+  });
+
+  canvas.addEventListener('touchstart', e => {
+    // Also support tap to move quickly left or right
+    const tapX = e.touches[0].clientX;
+    if(tapX < w/2) {
       player.x = Math.max(player.x - player.speed, 0);
     } else {
       player.x = Math.min(player.x + player.speed, w - player.width);
     }
-  }, { passive: false });
+  }, {passive: true});
 
-  // Drag finger horizontally to move player exactly under finger
-  canvas.addEventListener('touchmove', e => {
-    e.preventDefault();
-    const touchX = e.touches[0].clientX;
-    player.x = Math.min(Math.max(touchX - player.width / 2, 0), w - player.width);
-  }, { passive: false });
-
-  // Responsive resize
-  window.addEventListener('resize', () => {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
-    player.y = h - 100;
+  // Keyboard controls
+  document.addEventListener('keydown', e => {
+    if(e.key === 'ArrowLeft') {
+      player.x = Math.max(player.x - player.speed, 0);
+    } else if(e.key === 'ArrowRight') {
+      player.x = Math.min(player.x + player.speed, w - player.width);
+    }
   });
 
-  // Start game loop only after player image loads
-  playerImg.onload = () => {
-    gameLoop();
-  };
-
   // Spawn bombs every 800ms
-  setInterval(() => { if(!gameOver) spawnBomb(); }, 800);
+  setInterval(() => {
+    if(!gameOver) spawnBomb();
+  }, 800);
+
+  gameLoop();
 
 })();
 </script>
