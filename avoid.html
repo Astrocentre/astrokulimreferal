@@ -12,23 +12,48 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            background: linear-gradient(135deg, #141E30, #243B55);
             font-family: Arial, sans-serif;
+            color: white;
+            flex-direction: column;
         }
         canvas {
-            background: #fff;
-            border: 2px solid #000;
+            background: #222;
+            border: 3px solid #fff;
+            border-radius: 8px;
+        }
+        .controls {
+            margin-top: 10px;
+        }
+        .controls button {
+            background: #ff416c;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .score-display {
+            margin-bottom: 10px;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
+    <div class="score-display" id="scoreDisplay">Score: 0</div>
     <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <div class="controls">
+        <button onclick="moveLeft()">⬅️</button>
+        <button onclick="moveRight()">➡️</button>
+    </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        let player = { x: 180, y: 550, width: 40, height: 40, speed: 5 };
+        let player = { x: 180, y: 550, width: 40, height: 40, speed: 20 };
         let bombs = [];
         let score = 0;
         let gameOver = false;
@@ -46,7 +71,6 @@
             bombs.forEach(bomb => {
                 bomb.y += bomb.speed;
 
-                // collision detection
                 if (
                     bomb.x < player.x + player.width &&
                     bomb.x + bomb.size > player.x &&
@@ -61,30 +85,26 @@
 
             if (!gameOver) {
                 score++;
+                document.getElementById('scoreDisplay').textContent = 'Score: ' + score;
             }
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // player
-            ctx.fillStyle = 'blue';
+            ctx.fillStyle = '#4CAF50';
             ctx.fillRect(player.x, player.y, player.width, player.height);
 
-            // bombs
-            ctx.fillStyle = 'red';
+            ctx.fillStyle = '#FF4136';
             bombs.forEach(bomb => {
                 ctx.beginPath();
                 ctx.arc(bomb.x, bomb.y, bomb.size, 0, Math.PI * 2);
                 ctx.fill();
             });
 
-            ctx.fillStyle = 'black';
-            ctx.fillText('Score: ' + score, 10, 20);
-
             if (gameOver) {
-                ctx.fillStyle = 'black';
-                ctx.font = '30px Arial';
+                ctx.fillStyle = 'white';
+                ctx.font = '28px Arial';
                 ctx.fillText('Game Over!', 120, 300);
                 ctx.fillText('Final Score: ' + score, 100, 340);
             }
@@ -98,12 +118,21 @@
             }
         }
 
-        document.addEventListener('keydown', e => {
-            if (e.key === 'ArrowLeft' && player.x > 0) {
+        function moveLeft() {
+            if (player.x > 0) {
                 player.x -= player.speed;
-            } else if (e.key === 'ArrowRight' && player.x + player.width < canvas.width) {
+            }
+        }
+
+        function moveRight() {
+            if (player.x + player.width < canvas.width) {
                 player.x += player.speed;
             }
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') moveLeft();
+            else if (e.key === 'ArrowRight') moveRight();
         });
 
         setInterval(spawnBomb, 1000);
