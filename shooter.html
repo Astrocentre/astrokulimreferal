@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Space Shooter</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: black;
+  }
+  canvas {
+    display: block;
+  }
+  #score {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #00ffea;
+    font-size: 24px;
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 0 0 10px #0ff;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+<div id="score">Score: 0</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  let width, height;
+
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  let score = 0;
+  const player = {
+    x: width / 2,
+    y: height - 80,
+    size: 40,
+    speed: 6,
+    color: "#00ffea",
+    bullets: []
+  };
+
+  const enemies = [];
+  const enemyBullets = [];
+
+  function drawPlayer() {
+    ctx.fillStyle = player.color;
+    ctx.beginPath();
+    ctx.moveTo(player.x, player.y);
+    ctx.lineTo(player.x - player.size / 2, player.y + player.size);
+    ctx.lineTo(player.x + player.size / 2, player.y + player.size);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawStars() {
+    for (let i = 0; i < 100; i++) {
+      ctx.fillStyle = `rgba(255,255,255,${Math.random()})`;
+      ctx.fillRect(Math.random() * width, Math.random() * height, 2, 2);
+    }
+  }
+
+  function drawBullets() {
+    ctx.fillStyle = '#0ff';
+    player.bullets.forEach(b => ctx.fillRect(b.x, b.y, 4, 10));
+    ctx.fillStyle = 'red';
+    enemyBullets.forEach(b => ctx.fillRect(b.x, b.y, 4, 10));
+  }
+
+  function drawEnemies() {
+    ctx.fillStyle = '#f54291';
+    enemies.forEach(e => ctx.fillRect(e.x, e.y, e.size, e.size));
+  }
+
+  function update() {
+    // Player bullets
+    player.bullets.forEach(b => b.y -= 10);
+    player.bullets = player.bullets.filter(b => b.y > 0);
+
+    // Enemy bullets
+    enemyBullets.forEach(b => b.y += 5);
+    enemyBullets = enemyBullets.filter(b => b.y < height);
+
+    // Enemies
+    enemies.forEach(e => {
+      e.y += e.speed;
+      if (Math.random() < 0.01) {
+        enemyBullets.push({ x: e.x + e.size / 2, y: e.y + e.size });
+      }
+    });
+
+    // Collision detection
+    player.bullets.forEach((b, i) => {
+      enemies.forEach((e, j) => {
+        if (b.x < e.x + e.size && b.x > e.x && b.y < e.y + e.size && b.y > e.y) {
+          enemies.splice(j, 1);
+          player.bullets.splice(i, 1);
+          score += 10;
+        }
+      });
+    });
+
+    // AI enemy spawn
+    if (Math.random() < 0.02) {
+      enemies.push({
+        x: Math.random() * (width - 40),
+        y: -40,
+        size: 40,
+        speed: 2 + Math.random() * 2
+      });
+    }
+
+    // Enemy hits player
+    enemyBullets.forEach(b => {
+      if (b.x > player.x - player.size / 2 && b.x < player.x + player.size / 2 && b.y > player.y && b.y < player.y + player.size) {
+        score = 0;
+        enemies.length = 0;
+        player.bullets.length = 0;
+        enemyBullets.length = 0;
+        alert("You've been hit! Game restarting...");
+      }
+    });
+
+    document.getElementById("score").textContent = `Score: ${score}`;
+  }
+
+  function draw() {
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, width, height);
+    drawStars();
+    drawPlayer();
+    drawEnemies();
+    drawBullets();
+  }
+
+  function gameLoop() {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+  }
+
+  gameLoop();
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'ArrowLeft') player.x -= player.speed;
+    if (e.code === 'ArrowRight') player.x += player.speed;
+    if (e.code === 'Space') {
+      player.bullets.push({ x: player.x, y: player.y });
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
