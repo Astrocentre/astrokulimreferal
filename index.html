@@ -18,13 +18,14 @@
   <p id="msg"></p>
 
   <script>
-    const supabase = supabase.createClient(
+    const { createClient } = supabase;
+    const client = createClient(
       'https://vpzclfvfmskozxeccvnn.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwemNsZnZmbXNrb3p4ZWNjdm5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNTUzNzUsImV4cCI6MjA2ODgzMTM3NX0.cr_PR99k9Ad-_RrtqcVF9oMaTDaBZw5fh46uwYHxVS8'
     );
 
     async function login() {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error } = await client.auth.signInWithPassword({
         email: email.value,
         password: password.value
       });
@@ -33,7 +34,7 @@
     }
 
     async function signup() {
-      const { error } = await supabase.auth.signUp({
+      const { error } = await client.auth.signUp({
         email: email.value,
         password: password.value
       });
