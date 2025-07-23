@@ -1,86 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login | Astro Game Portal</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script> <!-- Added -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
+  <title>Login</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
-    body {
-      font-family: 'Orbitron', sans-serif;
-      background: #111;
-      color: #00f9ff;
-      text-align: center;
-      padding: 50px;
-    }
-    input, button {
-      padding: 10px;
-      margin: 8px;
-      border: none;
-      border-radius: 5px;
-      width: 80%;
-      max-width: 300px;
-      font-size: 16px;
-    }
-    button {
-      background: #00f9ff;
-      color: black;
-      cursor: pointer;
-    }
+    body { background: #111; color: #00f9ff; font-family: Arial; text-align: center; padding: 50px; }
+    input, button { margin: 10px; padding: 10px; width: 250px; border-radius: 5px; border: none; }
+    button { background: #00f9ff; color: black; cursor: pointer; }
   </style>
 </head>
 <body>
+  <h1>🚀 Astro Game Login</h1>
+  <input type="email" id="email" placeholder="Email"><br>
+  <input type="password" id="password" placeholder="Password"><br>
+  <button onclick="login()">Login</button>
+  <button onclick="signup()">Sign Up</button>
+  <p id="msg"></p>
 
-<h1>🎮 Astro Game Portal Login</h1>
-<input type="email" id="email" placeholder="Email"><br>
-<input type="password" id="password" placeholder="Password"><br>
-<button id="loginBtn">Login</button>
-<button id="signupBtn">Sign Up</button>
-<p id="loginMsg"></p>
+  <script>
+    const supabase = supabase.createClient(
+      'https://vpzclfvfmskozxeccvnn.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwemNsZnZmbXNrb3p4ZWNjdm5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNTUzNzUsImV4cCI6MjA2ODgzMTM3NX0.cr_PR99k9Ad-_RrtqcVF9oMaTDaBZw5fh46uwYHxVS8'
+    );
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDY-6cBQSybACJnwkTWchyujjCM85gGhks",
-    authDomain: "astrogametracker.firebaseapp.com",
-    databaseURL: "https://astrogametracker-default-rtdb.asia-southeast1.firebasedatabase.app", // Added
-    projectId: "astrogametracker",
-    appId: "1:729043631299:web:d509565b9b13b28f0b3676",
-    measurementId: "G-1TFSLW49SW"
-  };
+    async function login() {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.value,
+        password: password.value
+      });
+      document.getElementById('msg').textContent = error ? error.message : "✅ Login successful!";
+      if (!error) window.location.href = 'portal.html';
+    }
 
-  firebase.initializeApp(firebaseConfig);
-  firebase.analytics();
-  const auth = firebase.auth();
-  const database = firebase.database(); // Initialize database
-
-  const emailInput = document.getElementById("email");
-  const passwordInput = document.getElementById("password");
-  const loginMsg = document.getElementById("loginMsg");
-
-  // Test writing to database (remove later)
-  database.ref('test').set({ hello: "world" })
-    .then(() => console.log("✅ Test data written to DB"))
-    .catch(e => console.error("❌ DB write error:", e));
-
-  document.getElementById("signupBtn").onclick = () => {
-    auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
-      .then(() => loginMsg.textContent = "✅ Signup successful! Please login.")
-      .catch(err => loginMsg.textContent = "❌ " + err.message);
-  };
-
-  document.getElementById("loginBtn").onclick = () => {
-    auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-      .then(() => {
-        loginMsg.textContent = "✅ Login successful!";
-        window.location.href = "portal.html";
-      })
-      .catch(err => loginMsg.textContent = "❌ " + err.message);
-  };
-</script>
-
+    async function signup() {
+      const { error } = await supabase.auth.signUp({
+        email: email.value,
+        password: password.value
+      });
+      document.getElementById('msg').textContent = error ? error.message : "✅ Signup successful! Check your email.";
+    }
+  </script>
 </body>
 </html>
