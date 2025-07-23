@@ -103,6 +103,15 @@
         bomb.y + bomb.size > player.y
       ) {
         gameOver = true;
+
+        // Send final score to parent window
+        if (window.parent !== window) {
+          window.parent.postMessage({
+            type: 'score',
+            game: 'avoid',
+            score: score
+          }, '*'); // Replace '*' with your portal origin for better security
+        }
       }
     });
 
