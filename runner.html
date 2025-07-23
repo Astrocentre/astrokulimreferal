@@ -1,47 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AI Enhanced Endless Runner</title>
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background: #222;
-    font-family: 'Segoe UI', sans-serif;
-  }
-  canvas {
-    display: block;
-    background: linear-gradient(to top, #87ceeb, #e0f7ff);
-  }
-  #ui {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    color: white;
-    text-align: center;
-  }
-  #score {
-    font-size: 24px;
-    font-weight: bold;
-    text-shadow: 0 0 6px black;
-  }
-  .btn {
-    margin-top: 10px;
-    padding: 10px 30px;
-    font-size: 20px;
-    background: #007acc;
-    border: none;
-    color: white;
-    border-radius: 8px;
-    cursor: pointer;
-    display: none;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Enhanced Endless Runner</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #222;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    canvas {
+      display: block;
+      background: linear-gradient(to top, #87ceeb, #e0f7ff);
+    }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      color: white;
+      text-align: center;
+    }
+    #score {
+      font-size: 24px;
+      font-weight: bold;
+      text-shadow: 0 0 6px black;
+    }
+    .btn {
+      margin-top: 10px;
+      padding: 10px 30px;
+      font-size: 20px;
+      background: #007acc;
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    const supabase = supabase.createClient(
+      'https://vpzclfvfmskozxeccvnn.supabase.co',
+      'YOUR_SUPABASE_ANON_KEY_HERE'
+    );
+
+    let currentUser = null;
+
+    async function getUser() {
+      const { data, error } = await supabase.auth.getUser();
+      if (data?.user) {
+        currentUser = data.user;
+        console.log("Logged in as:", currentUser.email);
+      } else {
+        alert("⚠️ Not logged in. Redirecting...");
+        window.location.href = 'login.html';
+      }
+    }
+
+    getUser();
+
+    async function saveScoreToSupabase(finalScore) {
+      if (!currentUser) return;
+      const { error } = await supabase
+        .from('scores')
+        .insert([{ email: currentUser.email, score: finalScore }]);
+      if (error) {
+        console.error("❌ Failed to save score:", error.message);
+      } else {
+        console.log("✅ Score saved:", finalScore);
+      }
+    }
+  </script>
 </head>
 <body>
 
@@ -118,11 +154,9 @@
   }
 
   function drawBackground() {
-    // Ground
     ctx.fillStyle = "#4e342e";
     ctx.fillRect(0, height - groundHeight, width, groundHeight);
 
-    // Clouds
     ctx.fillStyle = "rgba(255,255,255,0.5)";
     for (let i = 0; i < 5; i++) {
       const cloudX = (score / 5 + i * 200) % width;
@@ -136,7 +170,7 @@
 
   function updateGame() {
     player.update();
-    gameSpeed += 0.002; // AI: Increase difficulty over time
+    gameSpeed += 0.002;
 
     for (let ob of obstacles) {
       ob.x -= gameSpeed;
@@ -196,14 +230,16 @@
     gameStarted = false;
     restartBtn.style.display = "inline-block";
 
-    // Send final score to parent window for Firebase saving
     const finalScore = Math.floor(score / 10);
+    saveScoreToSupabase(finalScore);
+
+    // Optional postMessage
     if (window.parent !== window) {
       window.parent.postMessage({
         type: 'score',
         game: 'runner',
         score: finalScore
-      }, '*'); // Replace '*' with your portal origin for security if you want
+      }, '*');
     }
   }
 
