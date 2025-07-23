@@ -1,235 +1,326 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Astro Centre Kulim - Game Portal</title>
-
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: #fff;
-      text-align: center;
-      padding-bottom: 50px;
-    }
-
-    header {
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.6);
-      font-size: 1.3rem;
-      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-    }
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Astro Centre Kulim - Secure Game Portal</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<style>
+  body {
+    margin: 0; padding: 0; font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: #fff; display: flex; flex-direction: column; min-height: 100vh;
+    align-items: center; justify-content: center;
+  }
+  header {
+    text-align: center;
+    padding: 20px;
+    background: rgba(0,0,0,0.6);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  header h1 {
+    margin: 0; font-weight: 700; font-size: 2.5rem;
+    letter-spacing: 2px;
+  }
+  #loginForm, #gamePortal {
+    background: rgba(255,255,255,0.1);
+    padding: 30px 40px;
+    border-radius: 16px;
+    box-shadow: 0 0 40px #00f9ff44;
+    width: 360px;
+    max-width: 90vw;
+    text-align: center;
+    margin-top: 40px;
+  }
+  #loginForm h2, #gamePortal h2 {
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 1.8rem;
+    color: #00f9ff;
+    text-shadow: 0 0 12px #00f9ff88;
+  }
+  input[type="email"], input[type="password"] {
+    width: 100%;
+    padding: 14px 20px;
+    margin: 8px 0 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    box-sizing: border-box;
+  }
+  button {
+    background: #00f9ff;
+    border: none;
+    color: #000;
+    font-weight: 700;
+    padding: 14px 30px;
+    font-size: 1.1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 10px;
+  }
+  button:hover {
+    background: #00c0d9;
+  }
+  .error-message {
+    color: #ff5555;
+    font-weight: 600;
+    margin: 12px 0 0;
+  }
+  .success-message {
+    color: #00ffb3;
+    font-weight: 600;
+    margin: 12px 0 0;
+  }
+  #logoutBtn {
+    margin-top: 15px;
+    background: transparent;
+    color: #00f9ff;
+    border: 2px solid #00f9ff;
+    width: auto;
+    padding: 8px 24px;
+    font-size: 1rem;
+    border-radius: 12px;
+  }
+  #logoutBtn:hover {
+    background: #00f9ff;
+    color: #000;
+  }
+  /* Games container */
+  .games-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 25px;
+  }
+  .game-card {
+    background: rgba(0, 249, 255, 0.1);
+    border: 2px solid #00f9ff;
+    border-radius: 15px;
+    padding: 25px 30px;
+    width: 180px;
+    cursor: pointer;
+    color: #00f9ff;
+    font-weight: 700;
+    box-shadow: 0 0 15px #00f9ff88;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+    user-select: none;
+  }
+  .game-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 40px #00f9ffcc;
+  }
+  .game-card i {
+    font-size: 3rem;
+    margin-bottom: 10px;
+  }
+  /* Responsive */
+  @media (max-width: 600px) {
     .games-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 30px 15px;
+      gap: 15px;
     }
-
     .game-card {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      margin: 15px;
-      padding: 25px;
-      border-radius: 15px;
-      width: 240px;
-      cursor: pointer;
-      transition: transform 0.3s ease, background 0.3s ease;
-      backdrop-filter: blur(5px);
+      width: 140px;
+      padding: 20px 15px;
+      font-size: 0.9rem;
     }
-
-    .game-card:hover {
-      transform: scale(1.05);
-      background: rgba(255, 255, 255, 0.2);
-    }
-
     .game-card i {
-      font-size: 40px;
-      margin-bottom: 10px;
+      font-size: 2.2rem;
     }
-
-    #gameArea {
-      display: none;
-      position: relative;
-      height: 100vh;
-    }
-
-    #gameFrame iframe {
-      width: 100vw;
-      height: 100vh;
-      border: none;
-    }
-
-    .back-button {
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      background: #ff4b2b;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      z-index: 9999;
-    }
-
-    footer {
-      position: relative;
-      bottom: 0;
-      padding: 10px;
-      color: #ccc;
-      font-size: 13px;
-    }
-
-    @media (max-width: 768px) {
-      .game-card {
-        width: 80%;
-      }
-
-      .back-button {
-        font-size: 14px;
-        padding: 8px 12px;
-      }
-    }
-  </style>
+  }
+  /* Game iframe container */
+  #gameArea {
+    margin-top: 20px;
+    position: relative;
+  }
+  #gameFrame iframe {
+    width: 100vw;
+    height: 80vh;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 0 40px #00f9ff88;
+  }
+  .back-button {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    background: #ff4b2b;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 9999;
+  }
+</style>
 </head>
 <body oncontextmenu="return false">
 
-  <header>
-    <h1>Astro Centre Kulim 🎮</h1>
-    <p>Main & Menang Hadiah Eksklusif!</p>
-  </header>
+<header>
+  <h1>Astro Centre Kulim 🎮</h1>
+  <p>Login dulu, main & menangi hadiah eksklusif!</p>
+</header>
+
+<div id="loginForm">
+  <h2>Login / Sign Up</h2>
+  <input type="email" id="email" placeholder="Email" autocomplete="username" required />
+  <input type="password" id="password" placeholder="Password" autocomplete="current-password" required />
+  <button id="loginBtn">Login / Sign Up</button>
+  <div id="loginMessage" class="error-message"></div>
+</div>
+
+<div id="gamePortal" style="display:none;">
+  <button id="logoutBtn">Logout</button>
+  <h2>Game Portal</h2>
 
   <div class="games-container">
     <div class="game-card" onclick="loadGame('avoid.html')">
       <i class="fas fa-bomb"></i>
-      <h3>Avoid The Bomb</h3>
+      Avoid The Bomb
     </div>
     <div class="game-card" onclick="loadGame('space.html')">
       <i class="fas fa-space-shuttle"></i>
-      <h3>Space Shooter</h3>
+      Space Shooter
     </div>
     <div class="game-card" onclick="loadGame('runner.html')">
       <i class="fas fa-running"></i>
-      <h3>Endless Runner</h3>
+      Endless Runner
     </div>
   </div>
 
-  <div id="gameArea">
+  <div id="gameArea" style="display:none;">
     <button class="back-button" onclick="backToMenu()">⬅️ Menu</button>
     <div id="gameFrame"></div>
   </div>
+</div>
 
-  <footer>
-    &copy; 2025 Astro Centre Kulim. Hak cipta terpelihara.
-  </footer>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-  <!-- Firebase SDKs -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-analytics.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDY-6cBQSybACJnwkTWchyujjCM85gGhks",
+    authDomain: "astrogametracker.firebaseapp.com",
+    databaseURL: "https://astrogametracker-default-rtdb.firebaseio.com",
+    projectId: "astrogametracker",
+    storageBucket: "astrogametracker.appspot.com",
+    messagingSenderId: "729043631299",
+    appId: "1:729043631299:web:d509565b9b13b28f0b3676",
+    measurementId: "G-1TFSLW49SW"
+  };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDY-6cBQSybACJnwkTWchyujjCM85gGhks",
-      authDomain: "astrogametracker.firebaseapp.com",
-      projectId: "astrogametracker",
-      storageBucket: "astrogametracker.firebasestorage.app",
-      messagingSenderId: "729043631299",
-      appId: "1:729043631299:web:d509565b9b13b28f0b3676",
-      measurementId: "G-1TFSLW49SW"
-    };
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const database = getDatabase(app);
+  // UI Elements
+  const loginForm = document.getElementById("loginForm");
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const loginBtn = document.getElementById("loginBtn");
+  const loginMessage = document.getElementById("loginMessage");
 
-    // Generate or get unique user ID (anonymous)
-    let userId = localStorage.getItem('astroUserId');
-    if (!userId) {
-      userId = 'user_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('astroUserId', userId);
+  const gamePortal = document.getElementById("gamePortal");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const gameArea = document.getElementById("gameArea");
+  const gameFrame = document.getElementById("gameFrame");
+
+  // Login / Signup
+  loginBtn.addEventListener("click", () => {
+    loginMessage.textContent = "";
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!email || !password) {
+      loginMessage.textContent = "Sila isi email dan password.";
+      return;
     }
-    console.log('User ID:', userId);
 
-    // Save score function
-    window.saveScore = function(gameName, score) {
-      if (typeof score !== 'number' || score < 0) {
-        console.warn('Invalid score:', score);
-        return;
-      }
-      const scoreRef = ref(database, `users/${userId}/games/${gameName}`);
-      set(scoreRef, {
-        score: score,
-        timestamp: Date.now()
-      })
+    // Try login first
+    signInWithEmailAndPassword(auth, email, password)
       .then(() => {
-        console.log(`Score saved for ${gameName}: ${score}`);
+        loginMessage.textContent = "";
       })
       .catch((error) => {
-        console.error('Error saving score:', error);
+        // If user not found, try signup
+        if (error.code === "auth/user-not-found") {
+          createUserWithEmailAndPassword(auth, email, password)
+            .then(() => {
+              loginMessage.textContent = "Akaun berjaya didaftarkan!";
+            })
+            .catch((err) => {
+              loginMessage.textContent = "Ralat pendaftaran: " + err.message;
+            });
+        } else {
+          loginMessage.textContent = "Ralat login: " + error.message;
+        }
       });
-    };
+  });
 
-    // Load game function (loads iframe)
-    window.loadGame = function(page) {
-      document.querySelector('.games-container').style.display = 'none';
-      document.getElementById('gameArea').style.display = 'block';
+  // Listen for auth state changes
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // Logged in
+      loginForm.style.display = "none";
+      gamePortal.style.display = "block";
+    } else {
+      // Logged out
+      loginForm.style.display = "block";
+      gamePortal.style.display = "none";
+      gameArea.style.display = "none";
+      gameFrame.innerHTML = "";
+    }
+  });
 
-      // Use template literal for iframe, set id for iframe to communicate
-      document.getElementById('gameFrame').innerHTML = `
-        <iframe 
-          id="gameIframe" 
-          src="${page}" 
-          sandbox="allow-scripts allow-same-origin" 
-          allowfullscreen 
-          allow="gamepad; fullscreen"
-        ></iframe>
-      `;
-    };
+  logoutBtn.addEventListener("click", () => {
+    signOut(auth);
+  });
 
-    // Back to menu function
-    window.backToMenu = function() {
-      document.getElementById('gameArea').style.display = 'none';
-      document.querySelector('.games-container').style.display = 'flex';
-      document.getElementById('gameFrame').innerHTML = '';
-    };
+  // Load game inside iframe
+  window.loadGame = function(page) {
+    gameArea.style.display = "block";
+    gameFrame.innerHTML = `<iframe src="${page}" sandbox="allow-scripts allow-same-origin" allowfullscreen></iframe>`;
+  };
 
-    // Listen for messages from the iframe games
-    window.addEventListener('message', (event) => {
-      // OPTIONAL: Check event.origin for security if your iframe hosted on same domain or trusted domain
-      // console.log('Message received:', event.data);
+  window.backToMenu = function() {
+    gameArea.style.display = "none";
+    gameFrame.innerHTML = "";
+  };
 
-      // Expect message like { type: 'score', game: 'runner', score: 1500 }
-      if (event.data && event.data.type === 'score' && event.data.game && typeof event.data.score === 'number') {
-        saveScore(event.data.game, event.data.score);
-      }
-    }, false);
+  // Listen for score messages and save only if logged in
+  window.addEventListener("message", (event) => {
+    const user = auth.currentUser;
+    const data = event.data;
 
-    // Basic dev tool blocker (bypassable but deterrent)
-    document.onkeydown = function (e) {
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
-        (e.ctrlKey && e.key === 'U')
-      ) {
-        return false;
-      }
-    };
-  </script>
+    if (!user) {
+      console.warn("Score ignored: user not logged in");
+      return;
+    }
+    if (data && data.type === "score") {
+      const scoreRef = ref(db, "scores/" + data.game + "/" + user.uid);
+      push(scoreRef, {
+        score: data.score,
+        timestamp: Date.now(),
+        email: user.email
+      })
+        .then(() => console.log("Score saved:", data))
+        .catch(console.error);
+    }
+  });
+</script>
+
 </body>
 </html>
