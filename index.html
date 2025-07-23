@@ -1,98 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astro Centre Kulim - Exclusive Games Hub</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #6e8efb, #a777e3);
-            margin: 0;
-            padding: 0;
-            color: #fff;
-            text-align: center;
-        }
-        header {
-            padding: 20px;
-            background: rgba(0,0,0,0.5);
-        }
-        .games-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 20px;
-        }
-        .game-card {
-            background: rgba(0,0,0,0.6);
-            margin: 10px;
-            padding: 20px;
-            border-radius: 10px;
-            width: 250px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .game-card:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        iframe {
-            border: none;
-            width: 100%;
-            height: 500px;
-        }
-        .hidden {
-            display: none;
-        }
-        footer {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #ddd;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Astro Centre Kulim - Game Portal</title>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      text-align: center;
+      padding-bottom: 50px;
+    }
+
+    header {
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      font-size: 1.3rem;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .games-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 30px 15px;
+    }
+
+    .game-card {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      margin: 15px;
+      padding: 25px;
+      border-radius: 15px;
+      width: 240px;
+      cursor: pointer;
+      transition: transform 0.3s ease, background 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .game-card:hover {
+      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .game-card i {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+
+    #gameArea {
+      display: none;
+    }
+
+    #gameFrame iframe {
+      width: 100vw;
+      height: 100vh;
+      border: none;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      background: #ff4b2b;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 9999;
+    }
+
+    footer {
+      position: relative;
+      bottom: 0;
+      padding: 10px;
+      color: #ccc;
+      font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+      .game-card {
+        width: 80%;
+      }
+
+      .back-button {
+        font-size: 14px;
+        padding: 8px 12px;
+      }
+    }
+  </style>
 </head>
-<body>
-    <header>
-        <h1>Astro Centre Kulim - Fun Games Hub</h1>
-        <p>Play to Win Exclusive Rewards!</p>
-    </header>
+<body oncontextmenu="return false">
 
-    <div class="games-container">
-        <div class="game-card" onclick="loadGame('avoid')">💣 Avoid The Bomb</div>
-        <div class="game-card" onclick="loadGame('space')">🚀 Space Shooter</div>
-        <div class="game-card" onclick="loadGame('runner')">🏃‍♂️ Endless Runner</div>
+  <header>
+    <h1>Astro Centre Kulim 🎮</h1>
+    <p>Main & Menang Hadiah Eksklusif!</p>
+  </header>
+
+  <div class="games-container">
+    <div class="game-card" onclick="loadGame('avoid.html')">
+      <i class="fas fa-bomb"></i>
+      <h3>Avoid The Bomb</h3>
     </div>
-
-    <div id="gameArea" class="hidden">
-        <button onclick="backToMenu()">⬅️ Back to Menu</button>
-        <div id="gameFrame"></div>
+    <div class="game-card" onclick="loadGame('space.html')">
+      <i class="fas fa-space-shuttle"></i>
+      <h3>Space Shooter</h3>
     </div>
+    <div class="game-card" onclick="loadGame('runner.html')">
+      <i class="fas fa-running"></i>
+      <h3>Endless Runner</h3>
+    </div>
+  </div>
 
-    <footer>
-        &copy; 2025 Astro Centre Kulim. All rights reserved.
-    </footer>
+  <div id="gameArea">
+    <button class="back-button" onclick="backToMenu()">⬅️ Menu</button>
+    <div id="gameFrame"></div>
+  </div>
 
-    <script>
-        function loadGame(game) {
-            document.querySelector('.games-container').classList.add('hidden');
-            document.getElementById('gameArea').classList.remove('hidden');
-            let gameHTML = '';
+  <footer>
+    &copy; 2025 Astro Centre Kulim. Hak cipta terpelihara.
+  </footer>
 
-            if(game === 'avoid') {
-                gameHTML = '<iframe src="avoid.html"></iframe>';
-            } else if(game === 'space') {
-                gameHTML = '<iframe src="space.html"></iframe>';
-            } else if(game === 'runner') {
-                gameHTML = '<iframe src="runner.html"></iframe>';
-            }
+  <script>
+    function loadGame(page) {
+      document.querySelector('.games-container').style.display = 'none';
+      document.getElementById('gameArea').style.display = 'block';
+      document.getElementById('gameFrame').innerHTML = `
+        <iframe src="${page}" sandbox="allow-scripts allow-same-origin" allowfullscreen></iframe>
+      `;
+    }
 
-            document.getElementById('gameFrame').innerHTML = gameHTML;
-        }
+    function backToMenu() {
+      document.getElementById('gameArea').style.display = 'none';
+      document.querySelector('.games-container').style.display = 'flex';
+      document.getElementById('gameFrame').innerHTML = '';
+    }
 
-        function backToMenu() {
-            document.querySelector('.games-container').classList.remove('hidden');
-            document.getElementById('gameArea').classList.add('hidden');
-            document.getElementById('gameFrame').innerHTML = '';
-        }
-    </script>
+    // Basic dev tool blocker (bypassable but good deterrent)
+    document.onkeydown = function (e) {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+        (e.ctrlKey && e.key === 'U')
+      ) {
+        return false;
+      }
+    };
+  </script>
 </body>
 </html>
