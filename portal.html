@@ -6,6 +6,7 @@
   <title>Astro Game Portal</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script> <!-- Added -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
   <style>
     body {
@@ -41,6 +42,7 @@
   const firebaseConfig = {
     apiKey: "AIzaSyDY-6cBQSybACJnwkTWchyujjCM85gGhks",
     authDomain: "astrogametracker.firebaseapp.com",
+    databaseURL: "https://astrogametracker-default-rtdb.asia-southeast1.firebasedatabase.app", // Added
     projectId: "astrogametracker",
     appId: "1:729043631299:web:d509565b9b13b28f0b3676",
     measurementId: "G-1TFSLW49SW"
@@ -48,12 +50,14 @@
 
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
+  const database = firebase.database(); // Initialize DB
 
   auth.onAuthStateChanged(user => {
     if (!user) {
       window.location.href = "login.html";
     } else {
       document.getElementById("userEmail").textContent = `Logged in as: ${user.email}`;
+      // You can use `user.uid` to save scores uniquely per user
     }
   });
 
