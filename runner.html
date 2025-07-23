@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>AI Enhanced Endless Runner</title>
 <style>
   html, body {
@@ -195,6 +195,16 @@
   function endGame() {
     gameStarted = false;
     restartBtn.style.display = "inline-block";
+
+    // Send final score to parent window for Firebase saving
+    const finalScore = Math.floor(score / 10);
+    if (window.parent !== window) {
+      window.parent.postMessage({
+        type: 'score',
+        game: 'runner',
+        score: finalScore
+      }, '*'); // Replace '*' with your portal origin for security if you want
+    }
   }
 
   function jump() {
