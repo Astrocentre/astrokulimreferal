@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Astro Game Portal</title>
+  <title>Login | Astro Game Portal</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
   <style>
@@ -15,17 +14,9 @@
       background: #111;
       color: #00f9ff;
       text-align: center;
-      margin: 0;
-      padding: 0;
+      padding: 50px;
     }
-    .section {
-      display: none;
-      padding: 30px;
-    }
-    .show {
-      display: block;
-    }
-    input {
+    input, button {
       padding: 10px;
       margin: 8px;
       border: none;
@@ -37,98 +28,50 @@
     button {
       background: #00f9ff;
       color: black;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 5px;
       cursor: pointer;
-      margin: 10px;
-    }
-    h1 {
-      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
 
-<!-- 🔐 LOGIN / SIGNUP SECTION -->
-<div id="loginSection" class="section show">
-  <h1>🎮 Astro Game Portal</h1>
-  <input type="email" id="email" placeholder="Email" required><br>
-  <input type="password" id="password" placeholder="Password" required><br>
-  <button id="loginBtn">Login</button>
-  <button id="signupBtn">Sign Up</button>
-  <p id="loginMsg"></p>
-</div>
-
-<!-- 🎯 GAME SECTION -->
-<div id="gameSection" class="section">
-  <h1>Welcome to Astro Game Portal</h1>
-  <p>You're logged in!</p>
-  <button onclick="window.location.href='runner.html'">Play Runner Game</button>
-  <button onclick="window.location.href='avoid.html'">Play Avoid Bomb</button>
-  <br><br>
-  <button id="logoutBtn">Logout</button>
-</div>
+<h1>🎮 Astro Game Portal Login</h1>
+<input type="email" id="email" placeholder="Email"><br>
+<input type="password" id="password" placeholder="Password"><br>
+<button id="loginBtn">Login</button>
+<button id="signupBtn">Sign Up</button>
+<p id="loginMsg"></p>
 
 <script>
-  // ✅ Firebase Config (YOURS)
   const firebaseConfig = {
     apiKey: "AIzaSyDY-6cBQSybACJnwkTWchyujjCM85gGhks",
     authDomain: "astrogametracker.firebaseapp.com",
-    databaseURL: "https://astrogametracker-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "astrogametracker",
-    storageBucket: "astrogametracker.firebasestorage.app",
-    messagingSenderId: "729043631299",
     appId: "1:729043631299:web:d509565b9b13b28f0b3676",
     measurementId: "G-1TFSLW49SW"
   };
 
-  // ✅ Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   firebase.analytics();
   const auth = firebase.auth();
 
-  // ✅ DOM Elements
   const emailInput = document.getElementById("email");
   const passwordInput = document.getElementById("password");
   const loginMsg = document.getElementById("loginMsg");
-  const loginSection = document.getElementById("loginSection");
-  const gameSection = document.getElementById("gameSection");
 
-  // ✅ Sign Up
   document.getElementById("signupBtn").onclick = () => {
-    const email = emailInput.value;
-    const password = passwordInput.value;
-    auth.createUserWithEmailAndPassword(email, password)
-      .then(() => loginMsg.textContent = "Signup successful! Please login.")
+    auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
+      .then(() => loginMsg.textContent = "✅ Signup successful! Please login.")
       .catch(err => loginMsg.textContent = "❌ " + err.message);
   };
 
-  // ✅ Login
   document.getElementById("loginBtn").onclick = () => {
-    const email = emailInput.value;
-    const password = passwordInput.value;
-    auth.signInWithEmailAndPassword(email, password)
-      .then(() => loginMsg.textContent = "")
+    auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
+      .then(() => {
+        loginMsg.textContent = "✅ Login successful!";
+        window.location.href = "portal.html";
+      })
       .catch(err => loginMsg.textContent = "❌ " + err.message);
   };
-
-  // ✅ Logout
-  document.getElementById("logoutBtn").onclick = () => {
-    auth.signOut();
-  };
-
-  // ✅ Auth State Change
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      loginSection.classList.remove("show");
-      gameSection.classList.add("show");
-    } else {
-      gameSection.classList.remove("show");
-      loginSection.classList.add("show");
-    }
-  });
 </script>
 
 </body>
