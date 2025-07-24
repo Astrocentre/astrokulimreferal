@@ -89,6 +89,9 @@
             text-shadow: 0 0 10px #00f9ff;
             opacity: 0;
             transition: opacity 0.5s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         #msg.error {
@@ -105,9 +108,23 @@
             opacity: 1;
         }
 
+        #spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #00f9ff;
+            border-top: 3px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
         @keyframes glow {
             from { text-shadow: 0 0 10px #00f9ff, 0 0 20px #0066cc; }
             to { text-shadow: 0 0 20px #00f9ff, 0 0 40px #0066cc; }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -118,7 +135,7 @@
     <input type="password" id="password" placeholder="Password" autocomplete="current-password">
     <button id="loginBtn" onclick="login()">Login</button>
     <button id="signupBtn" onclick="signup()">Sign Up</button>
-    <p id="msg"></p>
+    <p id="msg"><span id="spinner"></span><span id="msgText"></span></p>
     <script>
         // Starfield background
         const canvas = document.getElementById('starfield');
@@ -165,34 +182,48 @@
 
         const loginBtn = document.getElementById('loginBtn');
         const signupBtn = document.getElementById('signupBtn');
-        const msg = document.getElementById('msg');
+        const msg = document.getElementById('msgText');
+        const spinner = document.getElementById('spinner');
 
         async function login() {
             loginBtn.disabled = true;
             signupBtn.disabled = true;
             msg.textContent = 'Logging in...';
-            msg.className = 'visible';
+            spinner.style.display = 'inline-block';
+            msg.parentElement.className = 'visible';
+            console.log('Attempting login with email:', email.value);
             try {
-                const { error } = await client.auth.signInWithPassword({
+                const { data, error } = await client.auth.signInWithPassword({
                     email: email.value,
                     password: password.value
                 });
                 if (error) {
+                    console.error('Login error:', error.message);
                     msg.textContent = `❌ ${error.message}`;
-                    msg.className = 'error visible';
-                } else {
+                    msg.parentElement.className = 'error visible';
+                } else if (data.user) {
+                    console.log('Login successful, user:', data.user.id);
                     msg.textContent = '✅ Login successful!';
-                    msg.className = 'success visible';
-                    setTimeout(() => window.location.href = 'index.html', 1000);
+                    msg.parentElement.className = 'success visible';
+                    setTimeout(() => {
+                        console.log('Redirecting to portal.html');
+                        window.location.href = 'portal.html';
+                    }, 1000);
+                } else {
+                    console.error('Login failed: No user data returned');
+                    msg.textContent = '❌ Login failed. Try again.';
+                    msg.parentElement.className = 'error visible';
                 }
             } catch (e) {
+                console.error('Unexpected login error:', e);
                 msg.textContent = '❌ Unexpected error. Try again.';
-                msg.className = 'error visible';
+                msg.parentElement.className = 'error visible';
             }
             loginBtn.disabled = false;
             signupBtn.disabled = false;
+            spinner.style.display = 'none';
             setTimeout(() => {
-                msg.className = msg.className.replace('visible', '');
+                msg.parentElement.className = msg.parentElement.className.replace('visible', '');
             }, 3000);
         }
 
@@ -200,29 +231,43 @@
             loginBtn.disabled = true;
             signupBtn.disabled = true;
             msg.textContent = 'Signing up...';
-            msg.className = 'visible';
+            spinner.style.display = 'inline-block';
+            msg.parentElement.className = 'visible';
+            console.log('Attempting signup with email:', email.value);
             try {
-                const { error } = await client.auth.signUp({
+                const { data, error } = await client.auth.signUp({
                     email: email.value,
                     password: password.value
                 });
                 if (error) {
+                    console.error('Signup error:', error.message);
                     msg.textContent = `❌ ${error.message}`;
-                    msg.className = 'error visible';
+                    msg.parentElement.className = 'error visible';
                 } else {
+                    console.log('Signup successful, user:', data.user?.id);
                     msg.textContent = '✅ Signup successful! Check your email.';
-                    msg.className = 'success visible';
+                    msg.parentElement.className = 'success visible';
                 }
             } catch (e) {
+                console.error('Unexpected signup error:', e);
                 msg.textContent = '❌ Unexpected error. Try again.';
-                msg.className = 'error visible';
+                msg.parentElement.className = 'error visible';
             }
             loginBtn.disabled = false;
             signupBtn.disabled = false;
+            spinner.style.display = 'none';
             setTimeout(() => {
-                msg.className = msg.className.replace('visible', '');
+                msg.parentElement.className = msg.parentElement.className.replace('visible', '');
             }, 3000);
         }
+
+        // Enter key support
+        document.getElementById('email').addEventListener('keypress', e => {
+            if (e.key === 'Enter') login();
+        });
+        document.getElementById('password').addEventListener('keypress', e => {
+            if (e.key === 'Enter') login();
+        });
     </script>
 </body>
 </html>
