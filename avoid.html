@@ -1,207 +1,466 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Avoid The Bomb</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <style>
-    html, body {
-      margin: 0; padding: 0; overflow: hidden; height: 100%; background: black;
-      touch-action: none; user-select: none;
-    }
-    canvas {
-      display: block;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background: radial-gradient(ellipse at center, #000000 0%, #0a0a1a 80%);
-    }
-    #score {
-      position: fixed;
-      top: 15px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: #00f9ff;
-      font-family: monospace;
-      font-weight: 700;
-      font-size: 24px;
-      text-shadow: 0 0 8px #00f9ff;
-      pointer-events: none;
-      user-select: none;
-      z-index: 10;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Avoid The Meteor</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            background: linear-gradient(180deg, #0a0a23 0%, #1c2526 100%);
+            font-family: 'Orbitron', sans-serif;
+            touch-action: none;
+            user-select: none;
+        }
+
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+        }
+
+        #ui {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00f9ff;
+            font-weight: 700;
+            font-size: 28px;
+            text-shadow: 0 0 10px #00f9ff;
+            pointer-events: none;
+            z-index: 10;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        #gameOverScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00f9ff;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            text-shadow: 0 0 10px #00f9ff;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        #loadingScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            color: #00f9ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+            text-shadow: 0 0 10px #00f9ff;
+            font-size: 24px;
+        }
+
+        .btn {
+            margin: 10px;
+            padding: 12px 40px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #00f9ff, #0066cc);
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(0, 249, 255, 0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 249, 255, 0.8);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        #backBtn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #00f9ff, 0 0 20px #0066cc; }
+            to { text-shadow: 0 0 20px #00f9ff, 0 0 40px #0066cc; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
-<canvas id="game"></canvas>
-<div id="score">Score: 0</div>
+    <canvas id="game"></canvas>
+    <div id="ui">Score: <span id="score">0</span></div>
+    <button id="backBtn" class="btn">Back to Portal</button>
+    <div id="gameOverScreen">
+        <h1>Game Over</h1>
+        <p>Final Score: <span id="finalScore">0</span></p>
+        <button id="restartBtn" class="btn">Restart</button>
+    </div>
+    <div id="loadingScreen">Loading...</div>
+    <script>
+        const supabase = supabase.createClient(
+            'https://vpzclfvfmskozxeccvnn.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwemNsZnZmbXNrb3p4ZWNjdm5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNTUzNzUsImV4cCI6MjA2ODgzMTM3NX0.cr_PR99k9Ad-_RrtqcVF9oMaTDaBZw5fh46uwYHxVS8'
+        );
 
-<script>
-  const supabase = supabase.createClient(
-    'https://vpzclfvfmskozxeccvnn.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwemNsZnZmbXNrb3p4ZWNjdm5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNTUzNzUsImV4cCI6MjA2ODgzMTM3NX0.cr_PR99k9Ad-_RrtqcVF9oMaTDaBZw5fh46uwYHxVS8'
-  );
+        let userId = null;
+        let authChecked = false;
 
-  let userId = null;
-
-  supabase.auth.getUser().then(({ data: { user } }) => {
-    if (!user) {
-      window.location.href = 'login.html';
-    } else {
-      userId = user.id;
-    }
-  });
-
-  (() => {
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-
-    let w, h;
-
-    const player = {
-      width: 60,
-      height: 60,
-      x: 0,
-      y: 0,
-      speed: 15
-    };
-
-    function resize() {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
-      player.x = w / 2 - player.width / 2;
-      player.y = h - player.height - 60;
-    }
-
-    resize();
-    window.addEventListener('resize', resize);
-
-    const stars = Array.from({ length: 150 }, () => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      size: Math.random() * 1.5,
-      speed: 0.5 + Math.random() * 1.5
-    }));
-
-    let bombs = [];
-    let score = 0;
-    let gameOver = false;
-
-    function spawnBomb() {
-      bombs.push({
-        x: Math.random() * (w - 40),
-        y: -50,
-        size: 40,
-        speed: 2 + Math.random() * 3
-      });
-    }
-
-    async function submitScore(finalScore) {
-      if (!userId) return;
-
-      const { error } = await supabase.from('scores').insert([{
-        user_id: userId,
-        game: 'avoid',
-        score: finalScore
-      }]);
-
-      if (error) {
-        console.error('Failed to save score:', error);
-      }
-    }
-
-    function update() {
-      stars.forEach(s => {
-        s.y += s.speed;
-        if (s.y > h) s.y = 0;
-      });
-
-      bombs.forEach(bomb => bomb.y += bomb.speed);
-      bombs = bombs.filter(b => b.y < h + bomb.size);
-
-      bombs.forEach(bomb => {
-        if (
-          bomb.x < player.x + player.width &&
-          bomb.x + bomb.size > player.x &&
-          bomb.y < player.y + player.height &&
-          bomb.y + bomb.size > player.y
-        ) {
-          gameOver = true;
-          submitScore(score); // Save to Supabase
+        async function checkAuth() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    console.log('No user found, redirecting to login.html');
+                    window.location.href = 'login.html';
+                } else {
+                    userId = user.id;
+                    console.log('Authenticated user:', user.id);
+                    authChecked = true;
+                    document.getElementById('loadingScreen').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                window.location.href = 'login.html';
+            }
         }
-      });
+        checkAuth();
 
-      if (!gameOver) score++;
-    }
+        (() => {
+            const canvas = document.getElementById('game');
+            const ctx = canvas.getContext('2d');
+            const scoreUI = document.getElementById('score');
+            const gameOverScreen = document.getElementById('gameOverScreen');
+            const finalScoreUI = document.getElementById('finalScore');
+            const restartBtn = document.getElementById('restartBtn');
+            const backBtn = document.getElementById('backBtn');
 
-    function draw() {
-      ctx.clearRect(0, 0, w, h);
+            let w, h;
+            const player = {
+                width: 60,
+                height: 60,
+                x: 0,
+                y: 0,
+                speed: 15
+            };
 
-      ctx.fillStyle = 'white';
-      stars.forEach(s => {
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-        ctx.fill();
-      });
+            function resize() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+                player.x = w / 2 - player.width / 2;
+                player.y = h - player.height - 60;
+                console.log('Canvas resized:', w, h);
+            }
+            resize();
+            window.addEventListener('resize', resize);
 
-      ctx.fillStyle = '#00f9ff';
-      ctx.fillRect(player.x, player.y, player.width, player.height);
+            // Sound Effects
+            let collisionSound;
+            try {
+                collisionSound = new Audio('collision.mp3');
+                console.log('Collision sound loaded');
+            } catch (e) {
+                console.log('Audio file not found. Download collision.mp3 from https://freesound.org and place in the same directory.');
+            }
+            function playSound(sound) {
+                if (sound) {
+                    sound.play().catch(() => console.log('Failed to play sound. Ensure collision.mp3 is correctly placed.'));
+                }
+            }
 
-      bombs.forEach(bomb => {
-        ctx.fillStyle = 'red';
-        ctx.beginPath();
-        ctx.arc(bomb.x + bomb.size / 2, bomb.y + bomb.size / 2, bomb.size / 2, 0, Math.PI * 2);
-        ctx.fill();
-      });
+            // Particles
+            const particles = [];
+            class Particle {
+                constructor(x, y, isTrail = false) {
+                    this.x = x;
+                    this.y = y;
+                    this.radius = isTrail ? Math.random() * 3 + 1 : Math.random() * 5 + 2;
+                    this.dx = isTrail ? Math.random() * 2 - 1 : Math.random() * 4 - 2;
+                    this.dy = isTrail ? Math.random() + 1 : Math.random() * 4 - 2;
+                    this.alpha = 1;
+                    this.color = isTrail ? '#00f9ff' : Math.random() > 0.5 ? '#ff4500' : '#ff9800';
+                }
+                update() {
+                    this.x += this.dx;
+                    this.y += this.dy;
+                    this.alpha -= 0.02;
+                }
+                draw() {
+                    ctx.save();
+                    ctx.globalAlpha = this.alpha;
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
 
-      document.getElementById('score').textContent = 'Score: ' + score;
+            // Stars
+            const stars = Array.from({ length: 200 }, () => ({
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                size: Math.random() * 2 + 1,
+                speed: Math.random() * 1.5 + 0.5,
+                alpha: Math.random() * 0.5 + 0.5,
+                layer: Math.floor(Math.random() * 3)
+            }));
 
-      if (gameOver) {
-        ctx.fillStyle = '#00f9ff';
-        ctx.font = 'bold 60px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('GAME OVER', w / 2, h / 2 - 20);
-        ctx.font = '30px monospace';
-        ctx.fillText('Final Score: ' + score, w / 2, h / 2 + 40);
-      }
-    }
+            let bombs = [];
+            let score = 0;
+            let gameOver = false;
 
-    function gameLoop() {
-      if (!gameOver) update();
-      draw();
-      if (!gameOver) requestAnimationFrame(gameLoop);
-    }
+            class Bomb {
+                constructor() {
+                    this.size = 30 + Math.random() * (20 + score / 1000);
+                    this.x = Math.random() * (w - this.size);
+                    this.y = -this.size;
+                    this.speed = 2 + Math.random() * (3 + score / 2000);
+                    this.points = this.generateMeteorShape();
+                    this.rotation = 0;
+                    this.rotationSpeed = Math.random() * 0.02 - 0.01;
+                }
+                generateMeteorShape() {
+                    const points = [];
+                    const sides = 10;
+                    const radius = this.size / 2;
+                    for (let i = 0; i < sides; i++) {
+                        const angle = (i / sides) * Math.PI * 2;
+                        const variation = Math.random() * 5 + radius - 5;
+                        points.push({
+                            x: Math.cos(angle) * variation,
+                            y: Math.sin(angle) * variation
+                        });
+                    }
+                    return points;
+                }
+                update() {
+                    this.y += this.speed;
+                    this.rotation += this.rotationSpeed;
+                }
+                draw() {
+                    ctx.save();
+                    ctx.translate(this.x + this.size / 2, this.y + this.size / 2);
+                    ctx.rotate(this.rotation);
+                    const gradient = ctx.createRadialGradient(0, 0, 10, 0, 0, this.size / 2);
+                    gradient.addColorStop(0, '#ff4500');
+                    gradient.addColorStop(1, '#8b0000');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.moveTo(this.points[0].x, this.points[0].y);
+                    for (let i = 1; i < this.points.length; i++) {
+                        ctx.lineTo(this.points[i].x, this.points[i].y);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowColor = '#ff4500';
+                    ctx.shadowBlur = 15;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.restore();
+                }
+            }
 
-    let touchX = null;
-    canvas.addEventListener('touchstart', e => {
-      if (e.touches.length === 1) touchX = e.touches[0].clientX;
-    }, { passive: true });
+            function spawnBomb() {
+                if (gameOver || !authChecked) return;
+                bombs.push(new Bomb());
+                let spawnInterval = Math.max(500, 800 - score / 100);
+                if (score > 500 && Math.random() < score / 20000) {
+                    bombs.push(new Bomb());
+                    bombs.push(new Bomb());
+                    spawnInterval *= 0.5;
+                } else if (score > 1000 && Math.random() < score / 30000) {
+                    for (let i = 0; i < 3; i++) {
+                        setTimeout(() => bombs.push(new Bomb()), i * 100);
+                    }
+                    spawnInterval *= 0.7;
+                }
+                setTimeout(spawnBomb, spawnInterval);
+            }
 
-    canvas.addEventListener('touchmove', e => {
-      e.preventDefault();
-      if (e.touches.length === 1) {
-        let newX = e.touches[0].clientX;
-        let delta = newX - touchX;
-        player.x += delta;
-        player.x = Math.min(Math.max(player.x, 0), w - player.width);
-        touchX = newX;
-      }
-    }, { passive: false });
+            async function submitScore(finalScore) {
+                if (!userId) return;
+                const { error } = await supabase.from('scores').insert([{
+                    user_id: userId,
+                    game: 'avoid',
+                    score: finalScore
+                }]);
+                if (error) {
+                    console.error('Failed to save score:', error);
+                } else {
+                    console.log('Score saved:', finalScore);
+                }
+            }
 
-    canvas.addEventListener('touchend', () => touchX = null);
+            function update() {
+                if (!authChecked) return;
+                stars.forEach(s => {
+                    s.y += s.speed * (s.layer + 1) * 0.5;
+                    if (s.y > h) s.y = 0;
+                    s.alpha += Math.random() * 0.02 - 0.01;
+                    if (s.alpha < 0.5) s.alpha = 0.5;
+                    if (s.alpha > 1) s.alpha = 1;
+                });
 
-    document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowLeft') player.x = Math.max(player.x - player.speed, 0);
-      else if (e.key === 'ArrowRight') player.x = Math.min(player.x + player.speed, w - player.width);
-    });
+                bombs.forEach(bomb => bomb.update());
+                bombs = bombs.filter(b => b.y < h + b.size);
 
-    setInterval(() => {
-      if (!gameOver) spawnBomb();
-    }, 800);
+                bombs.forEach(bomb => {
+                    if (
+                        bomb.x < player.x + player.width &&
+                        bomb.x + bomb.size > player.x &&
+                        bomb.y < player.y + player.height &&
+                        bomb.y + bomb.size > player.y
+                    ) {
+                        gameOver = true;
+                        playSound(collisionSound);
+                        for (let i = 0; i < 20; i++) {
+                            particles.push(new Particle(player.x + player.width / 2, player.y + player.height / 2));
+                        }
+                        submitScore(score);
+                        gameOverScreen.style.display = 'flex';
+                        finalScoreUI.textContent = score;
+                    }
+                });
 
-    gameLoop();
-  })();
-</script>
+                if (!gameOver) score++;
+                scoreUI.textContent = score;
+
+                particles.forEach((p, i) => {
+                    p.update();
+                    if (p.alpha <= 0) particles.splice(i, 1);
+                });
+
+                if (!gameOver) {
+                    particles.push(new Particle(player.x + player.width / 2, player.y + player.height, true));
+                }
+            }
+
+            function draw() {
+                try {
+                    ctx.clearRect(0, 0, w, h);
+                    stars.forEach(s => {
+                        ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha})`;
+                        ctx.beginPath();
+                        ctx.arc(s.x, s.y, s.size * (s.layer + 1) * 0.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+
+                    ctx.save();
+                    ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
+                    const gradient = ctx.createLinearGradient(0, -player.height / 2, 0, player.height / 2);
+                    gradient.addColorStop(0, '#00f9ff');
+                    gradient.addColorStop(1, '#0066cc');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -player.height / 2);
+                    ctx.lineTo(-player.width / 2, player.height / 2);
+                    ctx.lineTo(-player.width / 4, player.height / 4);
+                    ctx.lineTo(player.width / 4, player.height / 4);
+                    ctx.lineTo(player.width / 2, player.height / 2);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowColor = '#00f9ff';
+                    ctx.shadowBlur = 20;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.restore();
+
+                    bombs.forEach(bomb => bomb.draw());
+                    particles.forEach(p => p.draw());
+                    console.log('Frame rendered, bombs:', bombs.length, 'particles:', particles.length);
+                } catch (error) {
+                    console.error('Draw error:', error);
+                }
+            }
+
+            function gameLoop() {
+                if (!authChecked) {
+                    console.log('Waiting for auth check...');
+                    return requestAnimationFrame(gameLoop);
+                }
+                update();
+                draw();
+                if (!gameOver) requestAnimationFrame(gameLoop);
+            }
+
+            let touchX = null;
+            canvas.addEventListener('touchstart', e => {
+                if (e.touches.length === 1) touchX = e.touches[0].clientX;
+            }, { passive: true });
+
+            canvas.addEventListener('touchmove', e => {
+                e.preventDefault();
+                if (e.touches.length === 1) {
+                    let newX = e.touches[0].clientX;
+                    let delta = newX - touchX;
+                    player.x += delta;
+                    player.x = Math.min(Math.max(player.x, 0), w - player.width);
+                    touchX = newX;
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', () => touchX = null);
+
+            document.addEventListener('keydown', e => {
+                if (e.key === 'ArrowLeft') player.x = Math.max(player.x - player.speed, 0);
+                else if (e.key === 'ArrowRight') player.x = Math.min(player.x + player.speed, w - player.width);
+            });
+
+            function startGame() {
+                score = 0;
+                gameOver = false;
+                bombs = [];
+                particles.length = 0;
+                player.x = w / 2 - player.width / 2;
+                player.y = h - player.height - 60;
+                gameOverScreen.style.display = 'none';
+                spawnBomb();
+                gameLoop();
+            }
+
+            restartBtn.onclick = startGame;
+            backBtn.onclick = () => window.location.href = 'index.html';
+
+            // Start the game loop immediately
+            console.log('Starting game loop...');
+            gameLoop();
+
+            // Instructions
+            console.log('Controls: Arrow keys or swipe to move');
+            console.log('Audio: Add collision.mp3 from https://freesound.org in the same directory.');
+        })();
+    </script>
 </body>
 </html>
