@@ -1,272 +1,439 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI Enhanced Endless Runner</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background: #222;
-      font-family: 'Segoe UI', sans-serif;
-    }
-    canvas {
-      display: block;
-      background: linear-gradient(to top, #87ceeb, #e0f7ff);
-    }
-    #ui {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
-      color: white;
-      text-align: center;
-    }
-    #score {
-      font-size: 24px;
-      font-weight: bold;
-      text-shadow: 0 0 6px black;
-    }
-    .btn {
-      margin-top: 10px;
-      padding: 10px 30px;
-      font-size: 20px;
-      background: #007acc;
-      border: none;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      display: none;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Enhanced Endless Runner</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
-  <!-- Supabase Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script>
-    const supabase = supabase.createClient(
-      'https://vpzclfvfmskozxeccvnn.supabase.co',
-      'YOUR_SUPABASE_ANON_KEY_HERE'
-    );
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(180deg, #0a0a23 0%, #1c2526 100%);
+            font-family: 'Orbitron', sans-serif;
+        }
 
-    let currentUser = null;
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
 
-    async function getUser() {
-      const { data, error } = await supabase.auth.getUser();
-      if (data?.user) {
-        currentUser = data.user;
-        console.log("Logged in as:", currentUser.email);
-      } else {
-        alert("⚠️ Not logged in. Redirecting...");
-        window.location.href = 'login.html';
-      }
-    }
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            color: #00f9ff;
+            text-align: center;
+            text-shadow: 0 0 10px #00f9ff;
+        }
 
-    getUser();
+        #score {
+            font-size: 28px;
+            font-weight: 700;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
 
-    async function saveScoreToSupabase(finalScore) {
-      if (!currentUser) return;
-      const { error } = await supabase
-        .from('scores')
-        .insert([{ email: currentUser.email, score: finalScore }]);
-      if (error) {
-        console.error("❌ Failed to save score:", error.message);
-      } else {
-        console.log("✅ Score saved:", finalScore);
-      }
-    }
-  </script>
+        .btn {
+            margin: 10px;
+            padding: 12px 40px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #00f9ff, #0066cc);
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(0, 249, 255, 0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 249, 255, 0.8);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        #backBtn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #00f9ff, 0 0 20px #0066cc; }
+            to { text-shadow: 0 0 20px #00f9ff, 0 0 40px #0066cc; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script>
+        const supabase = supabase.createClient(
+            'https://vpzclfvfmskozxeccvnn.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwemNsZnZmbXNrb3p4ZWNjdm5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNTUzNzUsImV4cCI6MjA2ODgzMTM3NX0.cr_PR99k9Ad-_RrtqcVF9oMaTDaBZw5fh46uwYHxVS8'
+        );
+
+        let currentUser = null;
+
+        async function getUser() {
+            const { data, error } = await supabase.auth.getUser();
+            if (data?.user) {
+                currentUser = data.user;
+                console.log("Logged in as:", currentUser.email);
+            } else {
+                alert("⚠️ Not logged in. Redirecting...");
+                window.location.href = 'login.html';
+            }
+        }
+        getUser();
+
+        async function saveScoreToSupabase(finalScore) {
+            if (!currentUser) return;
+            const { error } = await supabase
+                .from('scores')
+                .insert([{ email: currentUser.email, score: finalScore, game: 'runner' }]);
+            if (error) {
+                console.error("❌ Failed to save score:", error.message);
+            } else {
+                console.log("✅ Score saved:", finalScore);
+            }
+        }
+    </script>
 </head>
 <body>
+    <canvas id="game"></canvas>
+    <div id="ui">
+        <div id="score">Score: 0</div>
+        <button id="startBtn" class="btn">Start</button>
+        <button id="restartBtn" class="btn">Restart</button>
+    </div>
+    <button id="backBtn" class="btn">Back to Portal</button>
+    <script>
+        (() => {
+            const canvas = document.getElementById("game");
+            const ctx = canvas.getContext('2d');
+            const startBtn = document.getElementById("startBtn");
+            const restartBtn = document.getElementById("restartBtn");
+            const backBtn = document.getElementById("backBtn");
+            const scoreUI = document.getElementById("score");
 
-<canvas id="game"></canvas>
-<div id="ui">
-  <div id="score">Score: 0</div>
-  <button id="startBtn" class="btn">Start</button>
-  <button id="restartBtn" class="btn">Restart</button>
-</div>
+            let width, height;
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+            window.addEventListener("resize", resize);
+            resize();
 
-<script>
-(() => {
-  const canvas = document.getElementById("game");
-  const ctx = canvas.getContext("2d");
+            // Sound Effects
+            let jumpSound, collisionSound;
+            try {
+                jumpSound = new Audio('jump.mp3');
+                collisionSound = new Audio('collision.mp3');
+            } catch (e) {
+                console.log('Audio files not found. Download jump.mp3 and collision.mp3 from https://freesound.org and place them in the same directory.');
+            }
+            function playSound(sound) {
+                if (sound) {
+                    sound.play().catch(() => console.log('Failed to play sound. Ensure .mp3 files are correctly placed.'));
+                }
+            }
 
-  const startBtn = document.getElementById("startBtn");
-  const restartBtn = document.getElementById("restartBtn");
-  const scoreUI = document.getElementById("score");
+            // Particles for collision and player trail
+            const particles = [];
+            class Particle {
+                constructor(x, y, isTrail = false) {
+                    this.x = x;
+                    this.y = y;
+                    this.radius = isTrail ? Math.random() * 3 + 1 : Math.random() * 5 + 2;
+                    this.dx = isTrail ? Math.random() * 2 - 1 : Math.random() * 4 - 2;
+                    this.dy = isTrail ? Math.random() + 1 : Math.random() * 4 - 2;
+                    this.alpha = 1;
+                    this.color = isTrail ? '#00f9ff' : Math.random() > 0.5 ? '#00f9ff' : '#ff9800';
+                }
+                update() {
+                    this.x += this.dx;
+                    this.y += this.dy;
+                    this.alpha -= 0.02;
+                }
+                draw() {
+                    ctx.save();
+                    ctx.globalAlpha = this.alpha;
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
 
-  let width, height;
-  function resize() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-  }
-  window.addEventListener("resize", resize);
-  resize();
+            // Starry background
+            const stars = [];
+            for (let i = 0; i < 150; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 2 + 1,
+                    speed: Math.random() * 0.5 + 0.2,
+                    alpha: Math.random() * 0.5 + 0.5
+                });
+            }
 
-  let gravity = 0.7;
-  let gameSpeed = 6;
-  let score = 0;
-  let gameStarted = false;
-  let gameOver = false;
-  const groundHeight = 100;
+            let gravity = 0.7;
+            let gameSpeed = 6;
+            let score = 0;
+            let gameStarted = false;
+            let gameOver = false;
+            const groundHeight = 100;
 
-  const player = {
-    x: 100,
-    y: 0,
-    width: 50,
-    height: 50,
-    dy: 0,
-    jumpForce: 15,
-    grounded: false,
-    color: "#fdd835",
-    draw() {
-      ctx.fillStyle = this.color;
-      ctx.beginPath();
-      ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2);
-      ctx.fill();
-    },
-    update() {
-      this.dy += gravity;
-      this.y += this.dy;
-      if (this.y + this.height >= height - groundHeight) {
-        this.y = height - groundHeight - this.height;
-        this.dy = 0;
-        this.grounded = true;
-      } else {
-        this.grounded = false;
-      }
-    }
-  };
+            const player = {
+                x: 100,
+                y: 0,
+                width: 50,
+                height: 50,
+                dy: 0,
+                jumpForce: 15,
+                grounded: false,
+                draw() {
+                    ctx.save();
+                    ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                    const gradient = ctx.createRadialGradient(0, 0, 10, 0, 0, this.width / 2);
+                    gradient.addColorStop(0, '#fdd835');
+                    gradient.addColorStop(1, '#ff9800');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.width / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowColor = '#fdd835';
+                    ctx.shadowBlur = 20;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.restore();
+                    // Player trail
+                    if (gameStarted && !gameOver) {
+                        particles.push(new Particle(this.x + this.width / 2, this.y + this.height, true));
+                    }
+                },
+                update() {
+                    this.dy += gravity;
+                    this.y += this.dy;
+                    if (this.y + this.height >= height - groundHeight) {
+                        this.y = height - groundHeight - this.height;
+                        this.dy = 0;
+                        this.grounded = true;
+                    } else {
+                        this.grounded = false;
+                    }
+                }
+            };
 
-  let obstacles = [];
+            let obstacles = [];
+            class Obstacle {
+                constructor() {
+                    this.size = 30 + Math.random() * (40 + score / 1000); // AI: Size increases with score
+                    this.x = width;
+                    this.y = height - groundHeight - this.size;
+                    this.width = this.size;
+                    this.height = this.size;
+                    this.color = Math.random() > 0.5 ? '#ef5350' : '#ff9800';
+                    this.points = this.generateAsteroidShape();
+                    this.rotation = 0;
+                    this.rotationSpeed = Math.random() * 0.02 - 0.01;
+                }
+                generateAsteroidShape() {
+                    const points = [];
+                    const sides = 8;
+                    const radius = this.width / 2;
+                    for (let i = 0; i < sides; i++) {
+                        const angle = (i / sides) * Math.PI * 2;
+                        const variation = Math.random() * 5 + radius - 5;
+                        points.push({
+                            x: Math.cos(angle) * variation,
+                            y: Math.sin(angle) * variation
+                        });
+                    }
+                    return points;
+                }
+                update() {
+                    this.x -= gameSpeed;
+                    this.rotation += this.rotationSpeed;
+                }
+                draw() {
+                    ctx.save();
+                    ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                    ctx.rotate(this.rotation);
+                    const gradient = ctx.createRadialGradient(0, 0, 10, 0, 0, this.width / 2);
+                    gradient.addColorStop(0, '#fff');
+                    gradient.addColorStop(1, this.color);
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.moveTo(this.points[0].x, this.points[0].y);
+                    for (let i = 1; i < this.points.length; i++) {
+                        ctx.lineTo(this.points[i].x, this.points[i].y);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowColor = this.color;
+                    ctx.shadowBlur = 15;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.restore();
+                }
+            }
 
-  function spawnObstacle() {
-    const size = 30 + Math.random() * 40;
-    obstacles.push({
-      x: width,
-      y: height - groundHeight - size,
-      width: size,
-      height: size,
-      color: Math.random() > 0.5 ? "#ef5350" : "#ff9800"
-    });
-  }
+            function spawnObstacle() {
+                if (!gameStarted || gameOver) return;
+                obstacles.push(new Obstacle());
+                // AI: Dynamic spawn rate based on score
+                let spawnInterval = Math.max(800, 1300 - score / 50);
+                if (Math.random() < score / 10000) { // AI: Danger zone
+                    obstacles.push(new Obstacle());
+                    obstacles.push(new Obstacle());
+                    spawnInterval *= 0.5;
+                }
+                setTimeout(spawnObstacle, spawnInterval);
+            }
 
-  function drawBackground() {
-    ctx.fillStyle = "#4e342e";
-    ctx.fillRect(0, height - groundHeight, width, groundHeight);
+            function drawBackground() {
+                // Draw stars with twinkling effect
+                ctx.globalAlpha = 1;
+                stars.forEach(star => {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    star.x -= gameSpeed * 0.5;
+                    if (star.x < 0) star.x = width;
+                    star.alpha += Math.random() * 0.02 - 0.01;
+                    if (star.alpha < 0.5) star.alpha = 0.5;
+                    if (star.alpha > 1) star.alpha = 1;
+                });
 
-    ctx.fillStyle = "rgba(255,255,255,0.5)";
-    for (let i = 0; i < 5; i++) {
-      const cloudX = (score / 5 + i * 200) % width;
-      ctx.beginPath();
-      ctx.arc(cloudX, 100 + (i % 2) * 30, 40, 0, Math.PI * 2);
-      ctx.arc(cloudX + 40, 100 + (i % 2) * 30, 35, 0, Math.PI * 2);
-      ctx.arc(cloudX - 40, 100 + (i % 2) * 30, 35, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
+                // Draw ground
+                const groundGradient = ctx.createLinearGradient(0, height - groundHeight, 0, height);
+                groundGradient.addColorStop(0, '#4e342e');
+                groundGradient.addColorStop(1, '#2e1e0f');
+                ctx.fillStyle = groundGradient;
+                ctx.fillRect(0, height - groundHeight, width, groundHeight);
+            }
 
-  function updateGame() {
-    player.update();
-    gameSpeed += 0.002;
+            function updateGame() {
+                player.update();
+                gameSpeed += 0.002;
+                for (let ob of obstacles) {
+                    ob.update();
+                }
+                obstacles = obstacles.filter(ob => ob.x + ob.width > 0);
+                for (let ob of obstacles) {
+                    if (
+                        player.x < ob.x + ob.width &&
+                        player.x + player.width > ob.x &&
+                        player.y < ob.y + ob.height &&
+                        player.y + player.height > ob.y
+                    ) {
+                        gameOver = true;
+                        playSound(collisionSound);
+                        for (let i = 0; i < 20; i++) {
+                            particles.push(new Particle(player.x + player.width / 2, player.y + player.height / 2));
+                        }
+                        endGame();
+                    }
+                }
+                score += 1;
+                scoreUI.textContent = `Score: ${Math.floor(score / 10)}`;
+                particles.forEach((p, i) => {
+                    p.update();
+                    if (p.alpha <= 0) particles.splice(i, 1);
+                });
+            }
 
-    for (let ob of obstacles) {
-      ob.x -= gameSpeed;
-    }
-    obstacles = obstacles.filter(ob => ob.x + ob.width > 0);
+            function drawGame() {
+                ctx.clearRect(0, 0, width, height);
+                drawBackground();
+                player.draw();
+                for (let ob of obstacles) {
+                    ob.draw();
+                }
+                particles.forEach(p => p.draw());
+            }
 
-    for (let ob of obstacles) {
-      if (
-        player.x < ob.x + ob.width &&
-        player.x + player.width > ob.x &&
-        player.y < ob.y + ob.height &&
-        player.y + player.height > ob.y
-      ) {
-        gameOver = true;
-        endGame();
-      }
-    }
+            function gameLoop() {
+                if (!gameStarted || gameOver) return;
+                updateGame();
+                drawGame();
+                requestAnimationFrame(gameLoop);
+            }
 
-    score += 1;
-    scoreUI.textContent = `Score: ${Math.floor(score / 10)}`;
-  }
+            function startGame() {
+                score = 0;
+                gameSpeed = 6;
+                gameStarted = true;
+                gameOver = false;
+                player.y = height - groundHeight - player.height;
+                player.dy = 0;
+                obstacles = [];
+                particles.length = 0;
+                startBtn.style.display = "none";
+                restartBtn.style.display = "none";
+                scoreUI.textContent = "Score: 0";
+                spawnObstacle();
+                gameLoop();
+            }
 
-  function drawGame() {
-    ctx.clearRect(0, 0, width, height);
-    drawBackground();
-    player.draw();
-    for (let ob of obstacles) {
-      ctx.fillStyle = ob.color;
-      ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
-    }
-  }
+            function endGame() {
+                gameStarted = false;
+                restartBtn.style.display = "inline-block";
+                const finalScore = Math.floor(score / 10);
+                saveScoreToSupabase(finalScore);
+                if (window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'score',
+                        game: 'runner',
+                        score: finalScore
+                    }, '*');
+                }
+            }
 
-  function gameLoop() {
-    if (!gameStarted || gameOver) return;
-    updateGame();
-    drawGame();
-    requestAnimationFrame(gameLoop);
-  }
+            function jump() {
+                if (player.grounded && gameStarted) {
+                    player.dy = -player.jumpForce;
+                    player.grounded = false;
+                    playSound(jumpSound);
+                }
+            }
 
-  function startGame() {
-    score = 0;
-    gameSpeed = 6;
-    gameStarted = true;
-    gameOver = false;
-    player.y = height - groundHeight - player.height;
-    player.dy = 0;
-    obstacles = [];
+            startBtn.onclick = startGame;
+            restartBtn.onclick = startGame;
+            backBtn.onclick = () => window.location.href = 'index.html';
+            document.addEventListener("keydown", e => {
+                if (e.code === "Space") jump();
+            });
+            canvas.addEventListener("mousedown", jump);
+            canvas.addEventListener("touchstart", jump, { passive: false });
 
-    startBtn.style.display = "none";
-    restartBtn.style.display = "none";
-    scoreUI.textContent = "Score: 0";
+            // Initial UI
+            startBtn.style.display = "inline-block";
+            backBtn.style.display = "inline-block";
 
-    gameLoop();
-  }
-
-  function endGame() {
-    gameStarted = false;
-    restartBtn.style.display = "inline-block";
-
-    const finalScore = Math.floor(score / 10);
-    saveScoreToSupabase(finalScore);
-
-    // Optional postMessage
-    if (window.parent !== window) {
-      window.parent.postMessage({
-        type: 'score',
-        game: 'runner',
-        score: finalScore
-      }, '*');
-    }
-  }
-
-  function jump() {
-    if (player.grounded && gameStarted) {
-      player.dy = -player.jumpForce;
-      player.grounded = false;
-    }
-  }
-
-  startBtn.onclick = startGame;
-  restartBtn.onclick = startGame;
-
-  document.addEventListener("keydown", e => {
-    if (e.code === "Space") jump();
-  });
-  canvas.addEventListener("mousedown", jump);
-  canvas.addEventListener("touchstart", jump, { passive: false });
-
-  setInterval(() => {
-    if (gameStarted && !gameOver) spawnObstacle();
-  }, 1300);
-
-  // Initial UI
-  startBtn.style.display = "inline-block";
-})();
-</script>
-
+            // Instructions
+            console.log('Controls: Space, click, or tap to jump');
+            console.log('Audio: Add jump.mp3 and collision.mp3 from https://freesound.org in the same directory.');
+        })();
+    </script>
 </body>
 </html>
