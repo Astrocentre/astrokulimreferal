@@ -1,64 +1,211 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Astro Game Portal</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <style>
-    body { font-family: Arial; background: #111; color: #00f9ff; text-align: center; padding: 40px; }
-    button { padding: 10px 20px; margin: 10px; border-radius: 5px; background: #00f9ff; color: black; border: none; cursor: pointer; }
-    #log { margin-top: 20px; background: #000; padding: 10px; border-radius: 5px; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astro Game Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #0a0a23 0%, #1c2526 100%);
+            font-family: 'Orbitron', sans-serif;
+            color: #00f9ff;
+            overflow: hidden;
+        }
+
+        /* Starry background */
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        h1 {
+            font-size: 3rem;
+            text-shadow: 0 0 15px #00f9ff, 0 0 30px #0066cc;
+            margin-bottom: 20px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        #userEmail {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px #00f9ff;
+        }
+
+        button {
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #00f9ff, #0066cc);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 0 15px rgba(0, 249, 255, 0.5);
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 249, 255, 0.8);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        #log {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: left;
+            font-size: 0.9rem;
+            border: 1px solid #00f9ff;
+            box-shadow: 0 0 20px rgba(0, 249, 255, 0.3);
+            scrollbar-width: thin;
+            scrollbar-color: #00f9ff #000;
+        }
+
+        #log::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #log::-webkit-scrollbar-thumb {
+            background: #00f9ff;
+            border-radius: 4px;
+        }
+
+        #log::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        #realtimeLog {
+            color: #e0e0e0;
+        }
+
+        #realtimeLog div {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0, 249, 255, 0.2);
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #00f9ff, 0 0 20px #0066cc; }
+            to { text-shadow: 0 0 20px #00f9ff, 0 0 40px #0066cc; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body>
-  <h1>🎮 Astro Game Portal</h1>
-  <p id="userEmail"></p>
+    <canvas id="starfield"></canvas>
+    <h1>🎮 Astro Game Portal</h1>
+    <p id="userEmail"></p>
+    <div>
+        <button onclick="window.location.href='runner.html'">Play Runner Game</button>
+        <button onclick="window.location.href='avoid.html'">Play Avoid Bomb</button>
+        <button onclick="window.location.href='space_shooter.html'">Play Space Shooter</button>
+    </div>
+    <button onclick="logout()">Logout</button>
+    <div id="log"><strong>📡 Realtime Log:</strong><br><div id="realtimeLog"></div></div>
 
-  <button onclick="window.location.href='runner.html'">Play Runner Game</button>
-  <button onclick="window.location.href='avoid.html'">Play Avoid Bomb</button>
-  <br><br>
-  <button onclick="logout()">Logout</button>
+    <script>
+        // Starfield background
+        const canvas = document.getElementById('starfield');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
-  <div id="log"><strong>📡 Realtime Log:</strong><br><div id="realtimeLog"></div></div>
-
-  <script>
-    const supabase = supabase.createClient(
-      'https://vpzclfvfmskozxeccvnn.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwemNsZnZmbXNrb3p4ZWNjdm5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNTUzNzUsImV4cCI6MjA2ODgzMTM3NX0.cr_PR99k9Ad-_RrtqcVF9oMaTDaBZw5fh46uwYHxVS8'
-    );
-
-    // 🧠 Check current user session
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) window.location.href = 'login.html';
-      else document.getElementById("userEmail").textContent = "✅ Logged in as: " + user.email;
-    });
-
-    // ✅ Logout button
-    function logout() {
-      supabase.auth.signOut().then(() => {
-        window.location.href = 'login.html';
-      });
-    }
-
-    // 🔥 Realtime listener for scores table
-    supabase
-      .channel('realtime:scores')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', // INSERT, UPDATE, DELETE or '*'
-          schema: 'public',
-          table: 'scores'
-        },
-        (payload) => {
-          const logBox = document.getElementById("realtimeLog");
-          const type = payload.eventType.toUpperCase();
-          const user = payload.new?.email || payload.old?.email || 'Unknown';
-          const score = payload.new?.score || payload.old?.score || '-';
-          const time = new Date().toLocaleTimeString();
-          logBox.innerHTML = `[${time}] ${type}: ${user} scored ${score}<br>` + logBox.innerHTML;
+        const stars = [];
+        for (let i = 0; i < 200; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 2,
+                speed: Math.random() * 0.5 + 0.2
+            });
         }
-      )
-      .subscribe();
-  </script>
+
+        function drawStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#fff';
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fill();
+                star.y += star.speed;
+                if (star.y > canvas.height) star.y = 0;
+            });
+            requestAnimationFrame(drawStars);
+        }
+        drawStars();
+
+        // Supabase setup
+        const supabase = supabase.createClient(
+            'https://vpzclfvfmskozxeccvnn.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwemNsZnZmbXNrb3p4ZWNjdm5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNTUzNzUsImV4cCI6MjA2ODgzMTM3NX0.cr_PR99k9Ad-_RrtqcVF9oMaTDaBZw5fh46uwYHxVS8'
+        );
+
+        // Check current user session
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            if (!user) window.location.href = 'login.html';
+            else document.getElementById("userEmail").textContent = `✅ Logged in as: ${user.email}`;
+        });
+
+        // Logout button
+        function logout() {
+            supabase.auth.signOut().then(() => {
+                window.location.href = 'login.html';
+            });
+        }
+
+        // Realtime listener for scores table
+        supabase
+            .channel('realtime:scores')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'scores'
+                },
+                (payload) => {
+                    const logBox = document.getElementById("realtimeLog");
+                    const type = payload.eventType.toUpperCase();
+                    const user = payload.new?.email || payload.old?.email || 'Unknown';
+                    const score = payload.new?.score || payload.old?.score || '-';
+                    const time = new Date().toLocaleTimeString();
+                    const logEntry = document.createElement('div');
+                    logEntry.innerHTML = `[${time}] ${type}: ${user} scored ${score}`;
+                    logBox.prepend(logEntry);
+                    // Limit log entries to prevent overflow
+                    while (logBox.children.length > 10) {
+                        logBox.removeChild(logBox.lastChild);
+                    }
+                }
+            )
+            .subscribe();
+    </script>
 </body>
 </html>
